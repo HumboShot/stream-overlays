@@ -1,0 +1,170 @@
+/* Full-screen layout for a 2560x1440 (4K) broadcast canvas.
+   overflow: hidden ensures no scrollbars appear on stream. */
+body {
+    background-color: #1a0a1a;
+    color: #00ffff;
+    font-family: 'Share Tech Mono', monospace;
+    margin: 0;
+    overflow: hidden;
+    height: 1440px;
+    width: 2560px;
+    position: relative;
+    border: 4px solid cyan;
+    box-sizing: border-box;
+}
+
+/* Scanlines Overlay
+   A ::before pseudo-element lays a semi-transparent horizontal-stripe gradient
+   over the entire screen to mimic a CRT scanline effect.
+   pointer-events: none keeps it from blocking any clicks. */
+body::before {
+    content: " ";
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+    background-size: 100% 4px;
+    z-index: 10;
+    pointer-events: none;
+}
+
+.header {
+    background-color: #00334d;
+    border-bottom: 2px solid cyan;
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 40px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.title-block {
+    text-align: center;
+    position: absolute;
+    top: 45%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+/* --- TEXT GLITCH STYLING ---
+   .starting-text is the large centre title. The ::before and ::after pseudo-elements
+   are clones of the text that get shifted and skewed via keyframe animations
+   when the 'is-glitching' class is added by JS. */
+.starting-text {
+    font-size: 120px;
+    text-transform: uppercase;
+    text-shadow: 0 0 20px cyan;
+    position: relative;
+    display: inline-block;
+}
+
+.starting-text.is-glitching::before,
+.starting-text.is-glitching::after {
+    content: attr(data-text);
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #1a0a1a;
+}
+
+.starting-text.is-glitching::before {
+    left: 8px;
+    text-shadow: -3px 0 magenta;
+    clip-path: polygon(0 0, 100% 0, 100% 35%, 0 35%);
+    animation: glitch-anim-1 0.1s infinite linear alternate-reverse;
+}
+
+.starting-text.is-glitching::after {
+    left: -8px;
+    text-shadow: -3px 0 cyan;
+    clip-path: polygon(0 65%, 100% 65%, 100% 100%, 0 100%);
+    animation: glitch-anim-2 0.12s infinite linear alternate-reverse;
+}
+
+@keyframes glitch-anim-1 {
+    0% {
+        transform: translateX(0) skewX(0deg);
+    }
+
+    100% {
+        transform: translateX(-15px) skewX(-10deg);
+    }
+}
+
+@keyframes glitch-anim-2 {
+    0% {
+        transform: translateX(0) skewX(0deg);
+    }
+
+    100% {
+        transform: translateX(15px) skewX(10deg);
+    }
+}
+
+/* --- SYSTEM BROADCAST TYPING EFFECT ---
+   Container for the scrolling typewriter line at the bottom of the screen.
+   white-space: nowrap keeps the text on a single line regardless of length. */
+.broadcast-box {
+    position: absolute;
+    bottom: 100px;
+    left: 40px;
+    font-size: 28px;
+    width: calc(100% - 80px);
+    white-space: nowrap;
+    line-height: 1.4;
+    z-index: 50;
+}
+
+.broadcast-prefix {
+    color: #8A2387;
+    text-shadow: 0 0 10px rgba(138, 35, 135, 0.8);
+}
+
+.broadcast-text {
+    color: #00ffff;
+    text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+}
+
+.command-highlight {
+    color: #ffde00;
+    text-shadow: 0 0 12px rgba(255, 222, 0, 0.8);
+    font-weight: bold;
+}
+
+.footer {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    border-top: 2px solid magenta;
+    color: magenta;
+    padding: 20px 40px;
+    box-sizing: border-box;
+}
+
+/* --- BLINKING CURSORS & STANDBY LED ---
+   The @keyframes blink is shared by both the status dot and the cursor character.
+   The status::before dot uses a longer 1.5s interval to feel like a calm standby pulse. */
+@keyframes blink {
+    50% {
+        opacity: 0.2;
+    }
+}
+
+.status::before {
+    content: "●";
+    color: #ffaa00;
+    margin-right: 10px;
+    text-shadow: 0 0 12px #ffaa00;
+    animation: blink 1.5s infinite;
+}
+
+.cursor {
+    color: #00ffff;
+    animation: blink 1s infinite;
+}

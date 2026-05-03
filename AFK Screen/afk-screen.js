@@ -85,7 +85,6 @@ function typeBroadcast() {
         charIndex++;
     }
 
-
     const highlightedString = currentString.replace(/(!\w*)/g, '<span class="command-highlight">$1</span>');
     broadcastText.innerHTML = highlightedString;
 

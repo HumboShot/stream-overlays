@@ -49,7 +49,7 @@ function typeBroadcast() {
     }
 
     // Wrap any !command tokens in a span so CSS can colour them yellow.
-    const highlightedString = currentString.replace(/(!\.\w*)/g, '<span class="command-highlight">$1</span>');
+    const highlightedString = currentString.replace(/(!\w+)/g, '<span class="command-highlight">$1</span>');
     broadcastText.innerHTML = highlightedString;
 
     let currentSpeed = isDeleting ? deletingSpeed : typingSpeed;

@@ -44,7 +44,7 @@ body::before {
 .title-block {
     text-align: center;
     position: absolute;
-    top: 45%;
+    top: 27%;
     left: 50%;
     transform: translate(-50%, -50%);
 }
@@ -121,8 +121,8 @@ body::before {
 }
 
 .broadcast-prefix {
-    color: #8A2387;
-    text-shadow: 0 0 10px rgba(138, 35, 135, 0.8);
+    color: magenta;
+    text-shadow: 0 0 10px rgba(255, 0, 255, 0.8);
 }
 
 .broadcast-text {
@@ -161,7 +161,7 @@ body::before {
 
 .status::before {
     content: "●";
-    color: #ff3333;
+    color: #33ff44;
     margin-right: 10px;
     text-shadow: 0 0 12px #ff0000;
     animation: blink 1s infinite;

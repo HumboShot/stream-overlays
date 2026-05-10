@@ -145,6 +145,14 @@ body::before {
     color: magenta;
     padding: 20px 40px;
     box-sizing: border-box;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#clock {
+    text-shadow: 0 0 10px rgba(255, 0, 255, 0.8);
+    letter-spacing: 2px;
 }
 
 /* --- BLINKING CURSORS & WARNING LED ---

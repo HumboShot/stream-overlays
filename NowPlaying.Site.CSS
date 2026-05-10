@@ -4,8 +4,12 @@
 /* The AW theme secretly changes its main container to 'closed' when paused. 
    If our CSS detects that tag, we nuke the entire OBS window! */
 body:has(.closed) {
-    opacity: 0 !important;
-    visibility: hidden !important;
+    animation: nowplaying-glitch-out-body 420ms steps(2, end) forwards !important;
+    pointer-events: none !important;
+}
+
+body:has(.closed) #root>div {
+    animation: nowplaying-glitch-out 420ms steps(2, end) forwards !important;
 }
 
 /* We leave the main OBS window completely invisible by default */
@@ -16,7 +20,12 @@ html,
     margin: 0 !important;
     padding: 0 !important;
     overflow: hidden !important;
-    transition: opacity 0.5s ease, visibility 0.5s ease !important;
+}
+
+/* Glitch-in transition when the AW player becomes active again */
+body:not(:has(.closed)) #root>div {
+    animation: nowplaying-glitch-in 420ms steps(2, end) 1 !important;
+    transform-origin: center !important;
 }
 
 /* --- 2. THE TERMINAL BOX --- */
@@ -36,6 +45,16 @@ html,
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
+}
+
+/* Force the internal app shell and backdrop layers fully transparent */
+#root .container,
+#root .background,
+#root .background-muted,
+#root .\.background-muted {
+    background: transparent !important;
+    background-color: transparent !important;
+    backdrop-filter: none !important;
 }
 
 /* --- 3. FAKE TERMINAL HEADER --- */
@@ -91,4 +110,107 @@ svg {
     fill: #00ffff !important;
     color: #00ffff !important;
     filter: drop-shadow(0 0 5px cyan) !important;
+}
+
+@keyframes nowplaying-glitch-in {
+    0% {
+        opacity: 0;
+        transform: translate(0, 0) skewX(0deg) scale(0.995);
+        filter: contrast(1.8) saturate(1.4);
+        clip-path: inset(40% 0 25% 0);
+    }
+
+    12% {
+        opacity: 0.95;
+        transform: translate(-8px, 2px) skewX(-8deg) scale(1.01);
+        clip-path: inset(5% 0 70% 0);
+    }
+
+    24% {
+        opacity: 0.3;
+        transform: translate(10px, -2px) skewX(9deg) scale(0.99);
+        clip-path: inset(68% 0 8% 0);
+    }
+
+    36% {
+        opacity: 1;
+        transform: translate(-4px, 1px) skewX(-3deg) scale(1.003);
+        clip-path: inset(14% 0 48% 0);
+    }
+
+    52% {
+        opacity: 0.65;
+        transform: translate(6px, -1px) skewX(4deg) scale(0.997);
+        clip-path: inset(60% 0 14% 0);
+    }
+
+    72% {
+        opacity: 1;
+        transform: translate(-2px, 0) skewX(-1deg) scale(1.001);
+        clip-path: inset(18% 0 35% 0);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translate(0, 0) skewX(0deg) scale(1);
+        filter: contrast(1) saturate(1);
+        clip-path: inset(0 0 0 0);
+    }
+}
+
+@keyframes nowplaying-glitch-out {
+    0% {
+        opacity: 1;
+        transform: translate(0, 0) skewX(0deg) scale(1);
+        filter: contrast(1) saturate(1);
+        clip-path: inset(0 0 0 0);
+    }
+
+    18% {
+        opacity: 0.95;
+        transform: translate(4px, 0) skewX(2deg) scale(1.002);
+        clip-path: inset(10% 0 40% 0);
+    }
+
+    34% {
+        opacity: 0.6;
+        transform: translate(-9px, 2px) skewX(-7deg) scale(0.996);
+        clip-path: inset(55% 0 10% 0);
+    }
+
+    52% {
+        opacity: 0.85;
+        transform: translate(8px, -1px) skewX(8deg) scale(1.004);
+        clip-path: inset(12% 0 62% 0);
+    }
+
+    74% {
+        opacity: 0.35;
+        transform: translate(-6px, 1px) skewX(-5deg) scale(0.99);
+        clip-path: inset(68% 0 6% 0);
+    }
+
+    100% {
+        opacity: 0;
+        transform: translate(12px, 0) skewX(10deg) scale(0.985);
+        filter: contrast(1.9) saturate(1.5);
+        clip-path: inset(100% 0 0 0);
+    }
+}
+
+@keyframes nowplaying-glitch-out-body {
+    0% {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    99% {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    100% {
+        opacity: 0;
+        visibility: hidden;
+    }
 }

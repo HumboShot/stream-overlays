@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Time Panel</title>
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        html,
+        body {
+            margin: 0;
+            width: 450px;
+            height: 50px;
+            overflow: hidden;
+            background: transparent;
+            font-family: 'Share Tech Mono', monospace;
+        }
+
+        .panel {
+            position: relative;
+            width: 450px;
+            height: 50px;
+            box-sizing: border-box;
+            border: 2px solid #00ffff;
+            background: linear-gradient(90deg, #1e0930 0%, #0f0920 55%, #051119 100%);
+            color: #00ffff;
+            padding: 0 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .panel::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.22) 50%);
+            background-size: 100% 2px;
+            z-index: 2;
+        }
+
+        .time-row {
+            position: relative;
+            z-index: 3;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            gap: 10px;
+            font-size: 16px;
+        }
+
+        .time {
+            margin-left: auto;
+            font-size: 28px;
+            line-height: 1;
+            text-shadow: 0 0 12px rgba(0, 255, 255, 0.85);
+        }
+
+        .gmt {
+            color: #ffde59;
+            text-shadow: 0 0 8px rgba(255, 222, 89, 0.7);
+            min-width: 98px;
+            text-align: right;
+        }
+
+        .prefix {
+            color: #ff38c7;
+            white-space: nowrap;
+        }
+
+        .separator {
+            color: #ff38c7;
+        }
+
+        .pulse {
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            50% {
+                opacity: 0.2;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="panel">
+        <div class="time-row">
+            <span class="prefix">&gt; SYS_TIME</span>
+            <span class="separator">|</span>
+            <div id="time" class="time">00:00:00</div>
+            <span id="gmt" class="gmt">GMT+00:00</span>
+        </div>
+    </div>
+
+    <script>
+        const timeEl = document.getElementById('time');
+        const gmtEl = document.getElementById('gmt');
+
+        function formatGmtOffset(date) {
+            const totalMinutes = -date.getTimezoneOffset();
+            const sign = totalMinutes >= 0 ? '+' : '-';
+            const abs = Math.abs(totalMinutes);
+            const hours = String(Math.floor(abs / 60)).padStart(2, '0');
+            const minutes = String(abs % 60).padStart(2, '0');
+            return `GMT${sign}${hours}:${minutes}`;
+        }
+
+        function updateClock() {
+            const now = new Date();
+            const hh = String(now.getHours()).padStart(2, '0');
+            const mm = String(now.getMinutes()).padStart(2, '0');
+            const ss = String(now.getSeconds()).padStart(2, '0');
+            //const ms = String(now.getMilliseconds()).padStart(3, '0');
+
+            timeEl.textContent = `${hh}:${mm}:${ss}`;
+            gmtEl.textContent = formatGmtOffset(now);
+        }
+
+        let lastFrameTime = 0;
+        const frameInterval = 1000 / 1; // 1 FPS
+
+        function tick(timestamp) {
+            if (timestamp - lastFrameTime >= frameInterval) {
+                lastFrameTime = timestamp;
+                updateClock();
+            }
+            requestAnimationFrame(tick);
+        }
+
+        updateClock();
+        requestAnimationFrame(tick);
+    </script>
+</body>
+
+</html>

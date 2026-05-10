@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>PlexAmp Tuna Overlay</title>
+    <link rel="stylesheet" href="NowPlaying.Site.CSS">
+    <style>
+        /* Basic alignment to keep the cover and text looking good inside your terminal box */
+        #inner-content {
+            display: flex;
+            align-items: center;
+            gap: 25px;
+            /* Space between cover and text */
+            z-index: 50;
+            position: relative;
+            width: 100%;
+            /* Helps it span across the terminal box */
+            padding-left: 20px;
+            /* Pushes it slightly off the left wall */
+        }
+
+        #cover {
+            width: 150px;
+            /* Increased to match your original size */
+            height: 150px;
+            object-fit: cover;
+            /* Note: We don't need border CSS here because your custom CSS already adds the purple border to all images! */
+        }
+
+        .info {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            /* Slight gap between Title and Artist */
+        }
+
+        #title {
+            font-size: 38px;
+            /* Huge boost to match the NowPlaying.Site scale */
+            font-weight: bold;
+            line-height: 1;
+        }
+
+        #artist {
+            font-size: 28px;
+            /* Huge boost to match the NowPlaying.Site scale */
+            line-height: 1;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="root">
+        <div id="player" class="closed">
+            <div id="inner-content">
+                <img id="cover" src="" alt="Album Art" />
+                <div class="info">
+                    <div id="title">Waiting for Plex</div>
+                    <div id="artist">Start a song</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Store the current song title so we know when to change the cover
+        let currentTitle = "";
+
+        // This script asks Tuna for the current song every second
+        function updateTuna() {
+            fetch("http://localhost:1608/")
+                .then(response => response.json())
+                .then(data => {
+                    const player = document.getElementById("player");
+
+                    if (!data || !data.title || data.status.toLowerCase() !== "playing") {
+                        player.classList.add("closed");
+                    } else {
+                        player.classList.remove("closed");
+
+                        document.getElementById("title").innerText = data.title;
+                        document.getElementById("artist").innerText = data.artists ? data.artists.join(", ") : "Unknown Artist";
+
+                        // Check if the song has changed
+                        if (currentTitle !== data.title) {
+                            currentTitle = data.title;
+
+                            // Use the exact URL Tuna provides, plus the cache-buster to force OBS to update it
+                            if (data.cover_url) {
+                                document.getElementById("cover").src = data.cover_url + "?_=" + Date.now();
+                            } else {
+                                document.getElementById("cover").src = ""; // Leave blank if there's no album art
+                            }
+                        }
+                    }
+                })
+                .catch(error => {
+                    document.getElementById("player").classList.add("closed");
+                });
+        }
+
+        setInterval(updateTuna, 1000);
+    </script>
+</body>
+
+</html>

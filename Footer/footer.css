@@ -1,0 +1,41 @@
+/* Stream Footer Component
+   Designed for a 2560px wide canvas.
+   Standalone height: 92px (2px border-top + 20px padding + 50px content + 20px padding).
+   Use as a browser source in OBS at 2560x92 positioned at the bottom of the canvas. */
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+    background-color: #1a0a1a;
+    font-family: 'Share Tech Mono', monospace;
+    width: 2560px;
+    height: 92px;
+    overflow: hidden;
+}
+
+.footer {
+    width: 100%;
+    height: 100%;
+    border-top: 2px solid magenta;
+    color: magenta;
+    padding: 20px 40px;
+    box-sizing: border-box;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.network-access {
+    font-size: 28px;
+    letter-spacing: 1px;
+    text-shadow: 0 0 10px rgba(255, 56, 199, 0.75);
+}
+
+#clock.clock-frame {
+    width: 450px;
+    height: 50px;
+    border: 0;
+    background: transparent;
+    flex-shrink: 0;
+}

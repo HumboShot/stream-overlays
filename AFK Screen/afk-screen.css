@@ -111,7 +111,7 @@ body::before {
    white-space: nowrap keeps the text on a single line regardless of length. */
 .broadcast-box {
     position: absolute;
-    bottom: 100px;
+    bottom: 120px;
     left: 40px;
     font-size: 28px;
     width: calc(100% - 80px);
@@ -136,23 +136,13 @@ body::before {
     font-weight: bold;
 }
 
-.footer {
+.footer-frame {
     position: absolute;
     bottom: 0;
     left: 0;
     width: 100%;
-    border-top: 2px solid magenta;
-    color: magenta;
-    padding: 20px 40px;
-    box-sizing: border-box;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-#clock {
-    text-shadow: 0 0 10px rgba(255, 0, 255, 0.8);
-    letter-spacing: 2px;
+    height: 92px;
+    border: 0;
 }
 
 /* --- BLINKING CURSORS & STANDBY LED ---

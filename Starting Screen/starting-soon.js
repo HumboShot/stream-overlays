@@ -70,22 +70,3 @@ function typeBroadcast() {
 
 // Wait 3 seconds before starting so the glitch effect has time to kick in first.
 setTimeout(typeBroadcast, 3000);
-
-// --- 3. LIVE CLOCK ---
-const clockEl = document.getElementById('clock');
-
-function updateClock() {
-    const now = new Date();
-    const hh = String(now.getHours()).padStart(2, '0');
-    const mm = String(now.getMinutes()).padStart(2, '0');
-    const ss = String(now.getSeconds()).padStart(2, '0');
-    const offsetMins = -now.getTimezoneOffset();
-    const offsetSign = offsetMins >= 0 ? '+' : '-';
-    const offsetHours = String(Math.floor(Math.abs(offsetMins) / 60)).padStart(2, '0');
-    const offsetRemainder = String(Math.abs(offsetMins) % 60).padStart(2, '0');
-    const tz = offsetRemainder === '00' ? `GMT${offsetSign}${offsetHours}` : `GMT${offsetSign}${offsetHours}:${offsetRemainder}`;
-    clockEl.textContent = `> SYS_TIME: ${hh}:${mm}:${ss} [${tz}]`;
-}
-
-updateClock();
-setInterval(updateClock, 1000);

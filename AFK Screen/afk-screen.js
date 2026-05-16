@@ -35,7 +35,7 @@ const messages = shuffleArray([
     "Stretch your legs, grab a snack. We will resume shortly.",
     "Type !lurk in chat if you are stepping away as well. We'll be here when you get back.",
     "Check out !socials while you wait to stay connected to the network.",
-    "Want to support the stream? Feel free to follow or subscribe! Every bit of support helps keep the server running.",
+    "Want to support the stream? Feel free to follow or subscribe! Every bit of support helps keep the stream running.",
     "Ads might play while you wait, but don't worry, we won't let them interrupt the stream. Just sit back and relax.",
 ]);
 

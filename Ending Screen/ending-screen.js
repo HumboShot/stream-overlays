@@ -20,12 +20,21 @@ setTimeout(triggerGlitch, 2000);
 // --- 2. TYPEWRITER BROADCAST EFFECT ---
 // Rotating messages displayed one character at a time in the broadcast bar at the bottom.
 // Edit this array to change what gets shown on the ending screen.
-const messages = [
+// Shuffle messages array using Fisher-Yates algorithm
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+}
+
+const messages = shuffleArray([
     "Initiating system shutdown sequence... Thank you for connecting.",
     "Network disconnect imminent. Please prepare for data stream termination.",
     "Catch the latest !vods if you missed any of today's transmissions.",
     "Access !socials to maintain connection to the community network offline."
-];
+]);
 
 const broadcastText = document.querySelector('.broadcast-text');
 let msgIndex = 0;   // Tracks which message in the array is currently being shown.
@@ -71,35 +80,4 @@ function typeBroadcast() {
 }
 
 // Wait 3 seconds before starting so the glitch effect has time to kick in first.
-setTimeout(typeBroadcast, 3000);
-
-function typeBroadcast() {
-    const currentMsg = messages[msgIndex];
-    let currentString = "";
-
-    if (isDeleting) {
-        currentString = currentMsg.substring(0, charIndex - 1);
-        charIndex--;
-    } else {
-        currentString = currentMsg.substring(0, charIndex + 1);
-        charIndex++;
-    }
-
-    const highlightedString = currentString.replace(/(!\w*)/g, '<span class="command-highlight">$1</span>');
-    broadcastText.innerHTML = highlightedString;
-
-    let currentSpeed = isDeleting ? deletingSpeed : typingSpeed;
-
-    if (!isDeleting && charIndex === currentMsg.length) {
-        currentSpeed = pauseTime;
-        isDeleting = true;
-    } else if (isDeleting && charIndex === 0) {
-        isDeleting = false;
-        msgIndex = (msgIndex + 1) % messages.length;
-        currentSpeed = 1000;
-    }
-
-    setTimeout(typeBroadcast, currentSpeed);
-}
-
 setTimeout(typeBroadcast, 3000);

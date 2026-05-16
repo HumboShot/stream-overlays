@@ -35,71 +35,41 @@ let isDeleting = false; // Whether the effect is currently erasing the message.
 // Timing settings (in milliseconds)
 const typingSpeed = 50;    // Delay between each character being typed.
 const deletingSpeed = 20;  // Delay between each character being erased (faster than typing).
-const pauseTime = 8000;    // How long to hold the fully typed message before deleting.
+const pauseTime = 5000;    // How long to hold the fully typed message before deleting (5 seconds).
 
 function typeBroadcast() {
     const currentMsg = messages[msgIndex];
     let currentString = "";
 
-    // Build the visible string: shrink if deleting, grow if typing.
-    if (isDeleting) {
-        currentString = currentMsg.substring(0, charIndex - 1);
-        charIndex--;
-    } else {
+    if (!isDeleting) {
+        // Typing mode
         currentString = currentMsg.substring(0, charIndex + 1);
-        charIndex++;
+        broadcastText.innerHTML = currentString.replace(/(!\w*)/g, '<span class="command-highlight">$1</span>');
+        if (charIndex < currentMsg.length - 1) {
+            charIndex++;
+            setTimeout(typeBroadcast, typingSpeed);
+        } else {
+            // Finished typing, pause for pauseTime ms
+            setTimeout(() => {
+                isDeleting = true;
+                setTimeout(typeBroadcast, deletingSpeed);
+            }, pauseTime);
+        }
+    } else {
+        // Deleting mode
+        currentString = currentMsg.substring(0, charIndex - 1);
+        broadcastText.innerHTML = currentString.replace(/(!\w*)/g, '<span class="command-highlight">$1</span>');
+        if (charIndex > 0) {
+            charIndex--;
+            setTimeout(typeBroadcast, deletingSpeed);
+        } else {
+            // Finished deleting, move to next message after short pause
+            isDeleting = false;
+            msgIndex = (msgIndex + 1) % messages.length;
+            setTimeout(typeBroadcast, 1000);
+        }
     }
-
-    // Wrap any !command tokens in a span so CSS can colour them yellow.
-    const highlightedString = currentString.replace(/(!\.\w*)/g, '<span class="command-highlight">$1</span>');
-    broadcastText.innerHTML = highlightedString;
-
-    let currentSpeed = isDeleting ? deletingSpeed : typingSpeed;
-
-    if (!isDeleting && charIndex === currentMsg.length) {
-        // Finished typing — pause before starting to delete.
-        currentSpeed = pauseTime;
-        isDeleting = true;
-    } else if (isDeleting && charIndex === 0) {
-        // Finished deleting — move to the next message.
-        isDeleting = false;
-        msgIndex = (msgIndex + 1) % messages.length;
-        currentSpeed = 1000; // Short pause before starting the next message.
-    }
-
-    setTimeout(typeBroadcast, currentSpeed);
 }
 
 // Wait 3 seconds before starting so the glitch effect has time to kick in first.
-setTimeout(typeBroadcast, 3000);
-
-function typeBroadcast() {
-    const currentMsg = messages[msgIndex];
-    let currentString = "";
-
-    if (isDeleting) {
-        currentString = currentMsg.substring(0, charIndex - 1);
-        charIndex--;
-    } else {
-        currentString = currentMsg.substring(0, charIndex + 1);
-        charIndex++;
-    }
-
-    const highlightedString = currentString.replace(/(!\w*)/g, '<span class="command-highlight">$1</span>');
-    broadcastText.innerHTML = highlightedString;
-
-    let currentSpeed = isDeleting ? deletingSpeed : typingSpeed;
-
-    if (!isDeleting && charIndex === currentMsg.length) {
-        currentSpeed = pauseTime;
-        isDeleting = true;
-    } else if (isDeleting && charIndex === 0) {
-        isDeleting = false;
-        msgIndex = (msgIndex + 1) % messages.length;
-        currentSpeed = 1000;
-    }
-
-    setTimeout(typeBroadcast, currentSpeed);
-}
-
 setTimeout(typeBroadcast, 3000);

@@ -1,4 +1,3 @@
-// --- 1. GLITCH EFFECT ---
 // Grabs the main title text element to apply glitch CSS classes to it.
 const textElement = document.querySelector('.starting-text');
 
@@ -17,7 +16,6 @@ function triggerGlitch() {
 // Wait 2 seconds before starting the first glitch so the page can load first.
 setTimeout(triggerGlitch, 2000);
 
-// --- 2. TYPEWRITER BROADCAST EFFECT ---
 // Rotating messages displayed one character at a time in the broadcast bar at the bottom.
 // Edit this array to change what gets shown while the stream is in AFK mode.
 

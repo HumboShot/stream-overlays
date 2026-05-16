@@ -44,7 +44,7 @@ function typeBroadcast() {
     if (!isDeleting) {
         // Typing mode
         currentString = currentMsg.substring(0, charIndex + 1);
-        broadcastText.innerHTML = currentString.replace(/(!\w*)/g, '<span class="command-highlight">$1</span>');
+        broadcastText.innerHTML = currentString.replace(/(![\w]+)/g, '<span class="command-highlight">$1</span>');
         if (charIndex < currentMsg.length - 1) {
             charIndex++;
             setTimeout(typeBroadcast, typingSpeed);
@@ -58,7 +58,7 @@ function typeBroadcast() {
     } else {
         // Deleting mode
         currentString = currentMsg.substring(0, charIndex - 1);
-        broadcastText.innerHTML = currentString.replace(/(!\w*)/g, '<span class="command-highlight">$1</span>');
+        broadcastText.innerHTML = currentString.replace(/(![\w]+)/g, '<span class="command-highlight">$1</span>');
         if (charIndex > 0) {
             charIndex--;
             setTimeout(typeBroadcast, deletingSpeed);

@@ -1,0 +1,217 @@
+:root {
+    --panel-width: 320px;
+    --panel-height: 160px;
+
+    --bg-main: #1a0a1a;
+    --bg-header: #00334d;
+    --text-main: #00ffff;
+    --text-accent: #ff4df6;
+    --text-command: #ffde00;
+    --border-color: #00ffff;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    font-family: 'Share Tech Mono', monospace;
+}
+
+body {
+    padding: 10px;
+}
+
+.panel-tool {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+/* Fixed-size canvas for clean 1:1 panel screenshots. */
+.panel-canvas {
+    width: var(--panel-width);
+    height: var(--panel-height);
+    position: relative;
+    overflow: hidden;
+    background: radial-gradient(circle at 80% 10%, #2e0e2e 0%, var(--bg-main) 55%);
+    color: var(--text-main);
+    border: 2px solid var(--border-color);
+    box-shadow: inset 0 0 14px rgba(0, 255, 255, 0.25), 0 0 14px rgba(0, 255, 255, 0.2);
+}
+
+.panel-canvas::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.28) 50%);
+    background-size: 100% 4px;
+    pointer-events: none;
+    z-index: 3;
+}
+
+.panel-header {
+    height: 28px;
+    background: linear-gradient(90deg, #002a40 0%, var(--bg-header) 100%);
+    border-bottom: 1px solid var(--border-color);
+    padding: 0 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.panel-content {
+    position: relative;
+    z-index: 2;
+    height: calc(100% - 28px);
+    display: grid;
+    place-items: center;
+    padding: 8px 10px 10px;
+    text-align: center;
+}
+
+.panel-title {
+    margin: 0;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 31px;
+    line-height: 1;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    position: relative;
+    text-shadow: 0 0 14px rgba(0, 255, 255, 0.85);
+}
+
+.panel-title::before,
+.panel-title::after {
+    content: attr(data-text);
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.65;
+}
+
+.panel-title::before {
+    transform: translateX(1.5px);
+    color: var(--text-accent);
+    clip-path: polygon(0 0, 100% 0, 100% 45%, 0 45%);
+}
+
+.panel-title::after {
+    transform: translateX(-1.5px);
+    color: var(--text-main);
+    clip-path: polygon(0 55%, 100% 55%, 100% 100%, 0 100%);
+}
+
+.panel-subtitle {
+    margin: 8px 0 0;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #9ffcff;
+}
+
+.panel-command {
+    margin-top: 8px;
+    font-size: 10px;
+    line-height: 1;
+}
+
+.prefix {
+    color: var(--text-accent);
+}
+
+.command {
+    color: var(--text-command);
+    font-weight: 700;
+    text-shadow: 0 0 8px rgba(255, 222, 0, 0.8);
+}
+
+.panel-editor {
+    width: var(--panel-width);
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 6px;
+    padding: 10px;
+    border: 1px solid rgba(0, 255, 255, 0.35);
+    background: rgba(2, 12, 22, 0.85);
+    color: var(--text-main);
+}
+
+.panel-editor h2 {
+    margin: 0 0 4px;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.panel-editor label {
+    font-size: 10px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: #9ffcff;
+}
+
+.panel-editor input {
+    width: 100%;
+    padding: 6px 8px;
+    border: 1px solid rgba(0, 255, 255, 0.45);
+    background: rgba(1, 6, 14, 0.8);
+    color: var(--text-main);
+    font: inherit;
+}
+
+.panel-editor input:focus {
+    outline: 1px solid var(--text-command);
+    border-color: var(--text-command);
+}
+
+.panel-actions {
+    margin-top: 8px;
+}
+
+.panel-export-button {
+    width: 100%;
+    padding: 7px 8px;
+    border: 1px solid rgba(255, 222, 0, 0.7);
+    background: rgba(32, 18, 0, 0.85);
+    color: var(--text-command);
+    font: inherit;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    cursor: pointer;
+}
+
+.panel-export-button:hover:not(:disabled),
+.panel-export-button:focus-visible {
+    background: rgba(56, 33, 0, 0.9);
+    outline: 1px solid rgba(255, 222, 0, 0.9);
+}
+
+.panel-export-button:disabled {
+    opacity: 0.6;
+    cursor: wait;
+}
+
+.panel-export-status {
+    margin: 6px 0 0;
+    min-height: 1em;
+    font-size: 10px;
+    color: #9ffcff;
+}
+
+.panel-export-status.is-error {
+    color: #ff8da5;
+}
+
+.is-hidden {
+    display: none;
+}

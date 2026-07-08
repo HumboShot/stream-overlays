@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Twitch Panel Template</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="panel-template.css">
+</head>
+
+<body>
+    <!--
+        Panel editor guide:
+        1) Open this file in a browser.
+        2) Use the fields below to update text live.
+        3) Screenshot only the 320x160 panel area.
+
+    -->
+    <main class="panel-tool">
+        <section class="panel-canvas" aria-label="Twitch panel template preview">
+            <header class="panel-header">
+                <span id="previewHeader">channel.panel</span>
+            </header>
+
+            <div class="panel-content">
+                <div>
+                    <h1 id="previewTitle" class="panel-title" data-text="SUBSCRIPTION">SUBSCRIPTION</h1>
+                    <p id="previewSubtitle" class="panel-subtitle">STREAM SUPPORT</p>
+                    <p id="previewCommandRow" class="panel-command">
+                        <span id="previewPrefix" class="prefix">!</span><span id="previewCommand"
+                            class="command">SUBSCRIBE</span>
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <section class="panel-editor" aria-label="Panel text editor">
+            <h2>Panel Editor</h2>
+
+            <label for="headerInput">Header</label>
+            <input id="headerInput" name="header" type="text" value="channel.panel" autocomplete="off">
+
+            <label for="titleInput">Title</label>
+            <input id="titleInput" name="title" type="text" value="SUBSCRIPTION" autocomplete="off">
+
+            <label for="subtitleInput">Subtitle</label>
+            <input id="subtitleInput" name="subtitle" type="text" value="STREAM SUPPORT" autocomplete="off">
+
+            <label for="prefixInput">Command Prefix</label>
+            <input id="prefixInput" name="prefix" type="text" value="!" autocomplete="off">
+
+            <label for="commandInput">Command</label>
+            <input id="commandInput" name="command" type="text" value="SUBSCRIBE" autocomplete="off">
+
+            <div class="panel-actions">
+                <button id="exportButton" class="panel-export-button" type="button">Export 320x160 PNG</button>
+                <p id="exportStatus" class="panel-export-status" aria-live="polite"></p>
+            </div>
+        </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script>
+        const fields = {
+            header: document.getElementById('headerInput'),
+            title: document.getElementById('titleInput'),
+            subtitle: document.getElementById('subtitleInput'),
+            prefix: document.getElementById('prefixInput'),
+            command: document.getElementById('commandInput')
+        };
+
+        const preview = {
+            header: document.getElementById('previewHeader'),
+            title: document.getElementById('previewTitle'),
+            subtitle: document.getElementById('previewSubtitle'),
+            commandRow: document.getElementById('previewCommandRow'),
+            prefix: document.getElementById('previewPrefix'),
+            command: document.getElementById('previewCommand')
+        };
+
+        const panelCanvas = document.querySelector('.panel-canvas');
+        const exportButton = document.getElementById('exportButton');
+        const exportStatus = document.getElementById('exportStatus');
+
+        function readField(name) {
+            return fields[name].value.trim();
+        }
+
+        function setPreviewText() {
+            const header = readField('header') || 'channel.panel';
+            const title = readField('title') || 'PANEL';
+            const subtitle = readField('subtitle');
+            const prefix = readField('prefix');
+            const command = readField('command');
+
+            preview.header.textContent = header;
+
+            if (!preview.title || !preview.subtitle || !preview.commandRow || !preview.prefix || !preview.command) {
+                return;
+            }
+
+            preview.title.textContent = title;
+            preview.title.dataset.text = title;
+
+            preview.subtitle.textContent = subtitle;
+            preview.subtitle.classList.toggle('is-hidden', !subtitle);
+
+            preview.prefix.textContent = prefix;
+            preview.command.textContent = command;
+            preview.commandRow.classList.toggle('is-hidden', !prefix && !command);
+        }
+
+        Object.values(fields).forEach((input) => {
+            input.addEventListener('input', setPreviewText);
+        });
+
+        function fileSlug(input) {
+            return input
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/g, '-')
+                .replace(/^-+|-+$/g, '');
+        }
+
+        function updateExportStatus(message, isError = false) {
+            exportStatus.textContent = message;
+            exportStatus.classList.toggle('is-error', isError);
+        }
+
+        async function exportPanelPng() {
+            if (typeof window.html2canvas !== 'function') {
+                updateExportStatus('Export failed: renderer not loaded.', true);
+                return;
+            }
+
+            exportButton.disabled = true;
+            updateExportStatus('Rendering PNG...');
+
+            try {
+                if (document.fonts && typeof document.fonts.ready === 'object') {
+                    await document.fonts.ready;
+                }
+
+                const canvas = await window.html2canvas(panelCanvas, {
+                    backgroundColor: null,
+                    scale: 1,
+                    width: 320,
+                    height: 160,
+                    useCORS: true,
+                    logging: false
+                });
+
+                const safeName = fileSlug(readField('title') || 'panel') || 'panel';
+                const fileName = `${safeName}-320x160.png`;
+                const download = document.createElement('a');
+
+                const blob = await new Promise((resolve) => {
+                    canvas.toBlob(resolve, 'image/png');
+                });
+
+                if (blob) {
+                    const blobUrl = URL.createObjectURL(blob);
+                    download.href = blobUrl;
+                    download.download = fileName;
+                    download.click();
+                    URL.revokeObjectURL(blobUrl);
+                } else {
+                    download.href = canvas.toDataURL('image/png');
+                    download.download = fileName;
+                    download.click();
+                }
+
+                updateExportStatus(`Saved ${fileName}`);
+            } catch (error) {
+                updateExportStatus(`Export failed: ${error.message || 'unknown error'}`, true);
+            } finally {
+                exportButton.disabled = false;
+            }
+        }
+
+        exportButton.addEventListener('click', exportPanelPng);
+
+        setPreviewText();
+    </script>
+</body>
+
+</html>

@@ -10,7 +10,7 @@ This repo was split out of the original `twitch-webpages` monorepo, keeping full
 - `Ending Screen/` — stream ending screen
 - `Starting Screen/` — starting soon screen
 - `Footer/` — shared footer, embedded via `<iframe>` by the AFK/Ending/Starting screens
-- `Panel Template/` — panel template generator for channel panels
+- `Panel Template/` — panel template generator for channel panels ([must be run via a local server, not opened directly](Panel%20Template/README.md))
 - `Current.Time.html` — clock component embedded by the footer
 - `Tuna.Overlay.Music.html` — now-playing overlay for the Tuna OBS plugin
 - `NowPlaying.Site.CSS` — custom CSS override for the NowPlaying.Site component

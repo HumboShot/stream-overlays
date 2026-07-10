@@ -5,9 +5,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Twitch Panel Template</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="panel-template.css">
 </head>
 
@@ -62,7 +59,7 @@
         </section>
     </main>
 
-    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.11/dist/html-to-image.min.js"></script>
     <script>
         const fields = {
             header: document.getElementById('headerInput'),
@@ -130,7 +127,7 @@
         }
 
         async function exportPanelPng() {
-            if (typeof window.html2canvas !== 'function') {
+            if (typeof window.htmlToImage !== 'object' || typeof window.htmlToImage.toCanvas !== 'function') {
                 updateExportStatus('Export failed: renderer not loaded.', true);
                 return;
             }
@@ -139,26 +136,46 @@
             updateExportStatus('Rendering PNG...');
 
             try {
-                if (document.fonts && typeof document.fonts.ready === 'object') {
-                    await document.fonts.ready;
+                if (document.fonts) {
+                    try {
+                        await document.fonts.load("400 31px 'Share Tech Mono'");
+                        await document.fonts.load("400 10px 'Share Tech Mono'");
+                    } catch (fontError) {
+                        // Ignore font preload errors; export will fall back gracefully.
+                    }
+                    if (typeof document.fonts.ready === 'object') {
+                        await document.fonts.ready;
+                    }
                 }
 
-                const canvas = await window.html2canvas(panelCanvas, {
-                    backgroundColor: null,
-                    scale: 1,
+                // Render at a higher internal resolution (supersampling) so thin
+                // text/border edges get proper anti-aliasing, then downscale to the
+                // required 320x160 output. Rendering directly at 1:1 produces
+                // chunky/blurry edges compared to the browser's own display.
+                const supersample = 3;
+                const highResCanvas = await window.htmlToImage.toCanvas(panelCanvas, {
                     width: 320,
                     height: 160,
-                    useCORS: true,
-                    logging: false
+                    pixelRatio: supersample,
+                    cacheBust: true,
+                    backgroundColor: undefined
+                });
+
+                const outputCanvas = document.createElement('canvas');
+                outputCanvas.width = 320;
+                outputCanvas.height = 160;
+                const ctx = outputCanvas.getContext('2d');
+                ctx.imageSmoothingEnabled = true;
+                ctx.imageSmoothingQuality = 'high';
+                ctx.drawImage(highResCanvas, 0, 0, 320, 160);
+
+                const blob = await new Promise((resolve) => {
+                    outputCanvas.toBlob(resolve, 'image/png');
                 });
 
                 const safeName = fileSlug(readField('title') || 'panel') || 'panel';
                 const fileName = `${safeName}-320x160.png`;
                 const download = document.createElement('a');
-
-                const blob = await new Promise((resolve) => {
-                    canvas.toBlob(resolve, 'image/png');
-                });
 
                 if (blob) {
                     const blobUrl = URL.createObjectURL(blob);
@@ -167,7 +184,7 @@
                     download.click();
                     URL.revokeObjectURL(blobUrl);
                 } else {
-                    download.href = canvas.toDataURL('image/png');
+                    download.href = outputCanvas.toDataURL('image/png');
                     download.download = fileName;
                     download.click();
                 }

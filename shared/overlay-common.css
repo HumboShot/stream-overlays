@@ -1,3 +1,8 @@
+/* Shared layout/animation styles for the AFK / Ending / Starting terminal-style
+   overlays. Each screen's own stylesheet only needs to override the
+   `.status::before` LED (color/animation speed) and add any screen-specific
+   tweaks. */
+
 /* Full-screen layout for a 2560x1440 (4K) broadcast canvas.
    overflow: hidden ensures no scrollbars appear on stream. */
 body {
@@ -106,16 +111,16 @@ body::before {
     }
 }
 
-/* --- SYSTEM BROADCAST TYPING EFFECT --- */
+/* --- SYSTEM BROADCAST TYPING EFFECT ---
+   Container for the scrolling typewriter line at the bottom of the screen.
+   white-space: nowrap keeps the text on a single line regardless of length. */
 .broadcast-box {
     position: absolute;
     bottom: 120px;
     left: 40px;
     font-size: 28px;
     width: calc(100% - 80px);
-    /* Keeps text from touching edges */
     white-space: nowrap;
-    /* Forces text onto a single line */
     line-height: 1.4;
     z-index: 50;
 }
@@ -139,6 +144,8 @@ body::before {
     font-weight: bold;
 }
 
+/* --- STREAM FOOTER FRAME ---
+   Positions the embedded ../footer/footer.html iframe along the bottom edge. */
 .footer-frame {
     position: absolute;
     bottom: 0;
@@ -148,21 +155,13 @@ body::before {
     border: 0;
 }
 
-/* --- BLINKING CURSORS & LEDS ---
-   The @keyframes blink is shared by the status LED dot and the cursor character.
-   Adjust the interval on .status::before to change the LED blink speed. */
+/* --- BLINKING CURSOR ---
+   Shared by the status LED dot (see each screen's own stylesheet) and the
+   cursor character here. */
 @keyframes blink {
     50% {
         opacity: 0.2;
     }
-}
-
-.status::before {
-    content: "●";
-    color: #33ff44;
-    margin-right: 10px;
-    text-shadow: 0 0 12px #ff0000;
-    animation: blink 1s infinite;
 }
 
 .cursor {

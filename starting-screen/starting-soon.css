@@ -1,0 +1,11 @@
+/* Starting screen — screen-specific overrides.
+   Shared layout, glitch effect, and typewriter styles live in
+   ../shared/overlay-common.css */
+
+.status::before {
+    content: "●";
+    color: #33ff44;
+    margin-right: 10px;
+    text-shadow: 0 0 12px #ff0000;
+    animation: blink 1s infinite;
+}

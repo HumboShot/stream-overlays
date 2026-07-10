@@ -6,18 +6,19 @@ This repo was split out of the original `twitch-webpages` monorepo, keeping full
 
 ## Structure
 
-- `AFK Screen/` — AFK/BRB screen
-- `Ending Screen/` — stream ending screen
-- `Starting Screen/` — starting soon screen
-- `Footer/` — shared footer, embedded via `<iframe>` by the AFK/Ending/Starting screens
-- `Panel Template/` — panel template generator for channel panels ([must be run via a local server, not opened directly](Panel%20Template/README.md))
-- `Current.Time.html` — clock component embedded by the footer
-- `Tuna.Overlay.Music.html` — now-playing overlay for the Tuna OBS plugin
-- `NowPlaying.Site.CSS` — custom CSS override for the NowPlaying.Site component
+- `afk-screen/` — AFK/BRB screen
+- `ending-screen/` — stream ending screen
+- `starting-screen/` — starting soon screen
+- `shared/` — CSS/JS shared by the AFK/Ending/Starting screens (glitch title effect, typewriter broadcast message, common layout)
+- `footer/` — shared footer, embedded via `<iframe>` by the AFK/Ending/Starting screens
+- `panel-template/` — panel template generator for channel panels ([must be run via a local server, not opened directly](panel-template/README.md))
+- `clock/current-time.html` — clock component embedded by the footer
+- `tuna-overlay-music.html` — now-playing overlay for the Tuna OBS plugin
+- `nowplaying-site.css` — custom CSS override for the NowPlaying.Site component
 
-These files reference each other with relative paths (e.g. the AFK/Ending/Starting screens `iframe` in `Footer/footer.html`, which itself `iframe`s `Current.Time.html`), so they're kept together in one repo.
+The AFK/Ending/Starting screens each link `../shared/overlay-common.css` and `../shared/overlay-common.js` in addition to their own screen-specific stylesheet/script (status LED color, messages, timings), and embed `../footer/footer.html` via `<iframe>`, which itself embeds `../clock/current-time.html`.
 
-## Tuna.Overlay.Music
+## Tuna Overlay Music
 
 Currently using Tuna for displaying music from a local machine; works with both Foobar2000 and Plex (not PlexAmp).
 
@@ -26,6 +27,6 @@ Currently using Tuna for displaying music from a local machine; works with both 
 Install Tuna and open OBS. In OBS click on the tools menu and Tuna settings.
 Make sure Tuna is running. For Foobar2000 support, install the foo_mediacontrol component.
 
-## NowPlaying.Site
+## NowPlaying.Site CSS
 
 For styling the NowPlaying.Site component, add the NowPlaying.Site URL from their website, and in OBS override the CSS with what's in this repo.

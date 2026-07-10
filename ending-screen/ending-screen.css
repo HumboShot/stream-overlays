@@ -1,0 +1,13 @@
+/* Ending screen — screen-specific overrides.
+   Shared layout, glitch effect, and typewriter styles live in
+   ../shared/overlay-common.css */
+
+.status::before {
+    content: "●";
+    color: #ff3333;
+    /* Red warning light for shutdown */
+    margin-right: 10px;
+    text-shadow: 0 0 12px #ff0000;
+    animation: blink 0.8s infinite;
+    /* Flashes slightly faster during shutdown */
+}

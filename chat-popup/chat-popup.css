@@ -70,6 +70,26 @@ body {
     z-index: 2;
 }
 
+/* A message that is just a single emote (marked by markSoloEmote in
+   shared/twitch-chat.js) renders that emote extra large, with the username
+   stacked above it and centered — the box reads more like a clean "alert"
+   than a chat line. */
+.chat-toast .row.is-emote-only {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.chat-toast .row.is-emote-only .user {
+    margin-right: 0;
+    margin-bottom: 4px;
+}
+
+.chat-toast .row.is-emote-only .message {
+    /* The emote is sized 1.4em relative to this font-size → ~90px tall. */
+    font-size: 64px;
+}
+
 .chat-toast .user {
     font-weight: bold;
     margin-right: 8px;

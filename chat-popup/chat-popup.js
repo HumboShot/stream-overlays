@@ -50,6 +50,7 @@ function initChatPopup({
         const row = document.createElement('div');
         row.className = 'row';
         row.innerHTML = `<span class="user" style="color: ${color};">${escapeHtml(displayName)}:</span> <span class="message">${messageHtml}</span>`;
+        markSoloEmote(row);
         toast.appendChild(row);
 
         layer.appendChild(toast);

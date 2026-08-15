@@ -24,6 +24,7 @@ function initChatLatest({
         const row = document.createElement('div');
         row.className = 'row';
         row.innerHTML = `<span class="user" style="color: ${color};">${escapeHtml(displayName)}:</span> <span class="message">${messageHtml}</span>`;
+        markSoloEmote(row);
         box.replaceChildren(row);
 
         // Remove both state classes and force a reflow before re-adding

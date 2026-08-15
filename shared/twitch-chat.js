@@ -27,6 +27,18 @@ function escapeHtml(str) {
         .replace(/'/g, '&#39;');
 }
 
+// Adds the 'is-emote-only' class to a message row when it contains exactly
+// one emote and no other visible text (e.g. a chat that is just "PogChamp").
+// Lets each overlay's CSS render solo emotes extra large. Call right after
+// the overlay builds its own row markup; the row is expected to contain a
+// ".message" span holding the html from connectTwitchChat's onMessage.
+function markSoloEmote(row) {
+    const message = row.querySelector('.message');
+    if (message && message.querySelectorAll('.emote').length === 1 && message.textContent.trim() === '') {
+        row.classList.add('is-emote-only');
+    }
+}
+
 function connectTwitchChat({
     channel,
     twitchUserId,           // Numeric Twitch user ID, needed to query 7TV/BTTV for this channel's

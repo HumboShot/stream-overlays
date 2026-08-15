@@ -50,6 +50,7 @@ function initChatStack({
         const row = document.createElement('div');
         row.className = 'row';
         row.innerHTML = `<span class="user" style="color: ${color};">${escapeHtml(displayName)}:</span> <span class="message">${messageHtml}</span>`;
+        markSoloEmote(row);
         message.appendChild(row);
 
         // Newest message always goes in as the first child; with

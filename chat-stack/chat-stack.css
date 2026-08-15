@@ -24,13 +24,16 @@ body {
     left: 16px;
     bottom: 16px;
     width: 500px;
-    max-height: 1200px;
+    max-height: 1440px;
     display: flex;
     /* column-reverse means the FIRST DOM child sits at the bottom of the
        stack. chat-stack.js always inserts new messages via feed.prepend(),
        so the newest message is always that first child — i.e. always at
        the bottom, pushing older messages upward as more arrive. */
     flex-direction: column-reverse;
+    /* Let each message shrink to fit its own content instead of stretching
+       to the full feed width. */
+    align-items: flex-start;
     gap: 10px;
     /* Safety clip in case maxVisible (chat-stack.js) isn't tuned low enough
        for the available height — oldest messages get visually clipped at
@@ -45,6 +48,11 @@ body {
 .chat-message {
     position: relative;
     flex-shrink: 0;
+    /* Hug the content: the bubble is only as wide as its text/emotes, but
+       never wider than the feed (500px) — long messages wrap instead of
+       overflowing. */
+    width: max-content;
+    max-width: 100%;
     box-sizing: border-box;
     padding: 10px 16px;
     border: 2px solid #00ffff;

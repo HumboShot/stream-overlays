@@ -1,0 +1,91 @@
+/* Chat Latest overlay — shows only the single most recent chat message, in
+   the top-right corner of the canvas, and automatically hides it again
+   after a configurable delay (see displayDuration in chat-latest.js). Stays
+   fully transparent (like chat-popup/chat-stack) so it can sit on top of
+   gameplay/webcam in OBS — only the message box itself gets a
+   background/border. */
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+    width: 2560px;
+    height: 1440px;
+    overflow: hidden;
+    background: transparent;
+    font-family: 'Share Tech Mono', monospace;
+}
+
+/* Anchored to the top-right corner of the canvas. Edit top/right/max-width
+   here to reposition or resize it. Unlike chat-popup/chat-stack, this is a
+   single persistent element (chat-latest.js just swaps its content and
+   toggles .is-visible/.is-hiding) rather than one element per message. */
+#latest-message {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    max-width: 700px;
+    box-sizing: border-box;
+    padding: 16px;
+    border: 2px solid #00ffff;
+    border-radius: 4px;
+    background: linear-gradient(90deg, #1e0930 0%, #0f0920 55%, #051119 100%);
+    color: #00ffff;
+    font-size: 22px;
+    line-height: 1.4;
+    word-wrap: break-word;
+    text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+    box-shadow: 0 0 24px rgba(0, 0, 0, 0.5);
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(-16px) scale(0.9);
+    transition: opacity 0.4s ease-in, transform 0.4s ease-in;
+}
+
+/* Scanline overlay scoped to just this box (same trick used by chat-popup's
+   .chat-toast::before / chat-stack's .chat-message::before). */
+#latest-message::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 2px;
+    pointer-events: none;
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.22) 50%);
+    background-size: 100% 3px;
+    z-index: 1;
+}
+
+#latest-message .row {
+    position: relative;
+    z-index: 2;
+}
+
+#latest-message .user {
+    font-weight: bold;
+    margin-right: 8px;
+}
+
+#latest-message .message {
+    color: #00ffff;
+}
+
+#latest-message .message .emote {
+    /* Fixed width AND height (not "auto") so the image reserves its layout
+       space immediately instead of resizing once it finishes loading — see
+       the equivalent comment in chat-popup.css for the bug this avoids. */
+    width: 1.4em;
+    height: 1.4em;
+    object-fit: contain;
+    vertical-align: middle;
+    margin: 0 2px;
+}
+
+/* Shown whenever a message is currently on screen. chat-latest.js always
+   removes both this and .is-hiding, forces a reflow, then re-adds this
+   class — so the fade/slide-in transition retriggers even if messages
+   arrive back-to-back before the previous one finished hiding. */
+#latest-message.is-visible {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+}

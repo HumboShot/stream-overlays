@@ -6,6 +6,8 @@
 initChatStack({
     channel: 'humboshot',
     twitchUserId: '40262155',
+    twitchClientId: typeof TWITCH_CLIENT_ID !== 'undefined' ? TWITCH_CLIENT_ID : '',
+    twitchClientSecret: typeof TWITCH_CLIENT_SECRET !== 'undefined' ? TWITCH_CLIENT_SECRET : '',
 
     // How long (ms) each message stays on screen before it fades away.
     // Set this to 0 to disable auto-disappear entirely — messages will then
@@ -19,5 +21,5 @@ initChatStack({
     maxVisible: 25,
 
     // Drop messages that start with "!" (bot commands) to reduce noise.
-    hideCommands: true,
+    hideCommands: false,
 });

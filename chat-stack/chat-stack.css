@@ -109,6 +109,21 @@ body {
     margin-right: 8px;
 }
 
+.chat-message .badges {
+    display: inline-flex;
+    align-items: center;
+    vertical-align: middle;
+    margin-right: 6px;
+}
+
+.chat-message .badges .badge {
+    width: 1.1em;
+    height: 1.1em;
+    object-fit: contain;
+    vertical-align: middle;
+    margin: 0 2px;
+}
+
 .chat-message .message {
     color: #00ffff;
 }

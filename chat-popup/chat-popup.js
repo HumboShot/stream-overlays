@@ -11,6 +11,8 @@ function initChatPopup({
     twitchUserId,           // Numeric Twitch user ID, needed to query 7TV/BTTV for this channel's
                              // emotes (their APIs key channel lookups by ID, not login). This is
                              // public info, not a secret — safe to hardcode like the channel name.
+    twitchClientId,         // Twitch API Client ID, used with the secret to fetch badges.
+    twitchClientSecret,     // Twitch API Client Secret, used to mint a badge-fetch token.
     displayDuration = 6000, // How long a toast stays fully visible before it starts fading out.
     maxVisible = 12,        // Hard cap on simultaneous toasts so a busy chat doesn't pile up forever.
     hideCommands = true,    // Drop messages that start with "!" (bot commands) to reduce noise.
@@ -41,7 +43,7 @@ function initChatPopup({
         }, { once: true });
     }
 
-    function spawnToast(displayName, color, messageHtml) {
+    function spawnToast(displayName, color, messageHtml, badgesHtml) {
         const toast = document.createElement('div');
         toast.className = 'chat-toast is-entering';
         toast.style.left = `${randomPercent(10, 90)}%`;
@@ -49,7 +51,7 @@ function initChatPopup({
 
         const row = document.createElement('div');
         row.className = 'row';
-        row.innerHTML = `<span class="user" style="color: ${color};">${escapeHtml(displayName)}:</span> <span class="message">${messageHtml}</span>`;
+        row.innerHTML = `${badgesHtml}<span class="user" style="color: ${color};">${escapeHtml(displayName)}:</span> <span class="message">${messageHtml}</span>`;
         markSoloEmote(row);
         toast.appendChild(row);
 
@@ -66,6 +68,8 @@ function initChatPopup({
     connectTwitchChat({
         channel,
         twitchUserId,
+        twitchClientId,
+        twitchClientSecret,
         hideCommands,
         onMessage: spawnToast,
     });
@@ -74,4 +78,6 @@ function initChatPopup({
 initChatPopup({
     channel: 'humboshot',
     twitchUserId: '40262155',
+    twitchClientId: typeof TWITCH_CLIENT_ID !== 'undefined' ? TWITCH_CLIENT_ID : '',
+    twitchClientSecret: typeof TWITCH_CLIENT_SECRET !== 'undefined' ? TWITCH_CLIENT_SECRET : '',
 });

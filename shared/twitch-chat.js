@@ -3,7 +3,7 @@
 // Twitch chat via a raw WebSocket to Twitch's IRC gateway (anonymous
 // "justinfan" login, no OAuth/secrets needed), resolves both native Twitch
 // emotes and 7TV / BTTV / FFZ emotes to inline images, and calls back into
-// the overlay's own onMessage(displayName, color, html) for every qualifying
+// the overlay's own onMessage(displayName, color, html, badgesHtml) for every qualifying
 // chat message. Each overlay is responsible for its own visual
 // presentation/lifecycle (see chat-popup.js and chat-stack.js).
 //
@@ -45,7 +45,12 @@ function connectTwitchChat({
                              // emotes (their APIs key channel lookups by ID, not login). This is
                              // public info, not a secret — safe to hardcode like the channel name.
     hideCommands = true,    // Drop messages that start with "!" (bot commands) to reduce noise.
-    onMessage,              // (displayName, color, html) => void — called for each qualifying message.
+    twitchClientId,         // Optional. Twitch API Client ID — used with twitchClientSecret to mint
+                             // an app access token for fetching chat badges. Public info.
+    twitchClientSecret,     // Optional. Twitch API Client Secret — used to mint a short-lived app
+                             // access token (client-credentials flow) that lets us list global and
+                             // channel-specific badge image URLs from Helix. Treat as a secret.
+    onMessage,              // (displayName, color, html, badgesHtml) => void — called for each qualifying message.
 } = {}) {
     // ---------------------------------------------------------------------
     // THIRD-PARTY EMOTES (7TV / BTTV / FFZ)
@@ -115,6 +120,108 @@ function connectTwitchChat({
         addEmotes(normalizeBttv(bttvChannel && [...(bttvChannel.channelEmotes || []), ...(bttvChannel.sharedEmotes || [])]));
         addEmotes(normalizeBttv(bttvGlobal));
         addEmotes(normalizeFfz(ffzRoom));
+    }
+
+    // ---------------------------------------------------------------------
+    // TWITCH BADGES
+    // Badge image URLs come from the Twitch Helix API. Listing them (even the
+    // global set) requires an app access token, which we mint at startup via
+    // the OAuth client-credentials flow using twitchClientId + twitchClientSecret.
+    // The result is a Map<"set_id/version", imageUrl> used to render small
+    // inline badge images next to each user's name.
+    // ---------------------------------------------------------------------
+    const twitchBadges = new Map();
+
+    // Mint a short-lived app access token (client_credentials grant). Returns
+    // the token string, or null if we have no credentials or the request fails
+    // (e.g. invalid client id/secret) — badges then simply don't render and
+    // chat keeps working.
+    async function getAppAccessToken() {
+        if (!twitchClientId || !twitchClientSecret) return null;
+        try {
+            const res = await fetch('https://id.twitch.tv/oauth2/token', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({
+                    client_id: twitchClientId,
+                    client_secret: twitchClientSecret,
+                    grant_type: 'client_credentials',
+                }),
+            });
+            if (!res.ok) {
+                console.warn('Twitch Chat: failed to obtain app access token (HTTP', res.status, ')', await res.text().catch(() => ''));
+                return null;
+            }
+            const json = await res.json();
+            return json.access_token || null;
+        } catch (err) {
+            console.warn('Twitch Chat: failed to obtain app access token', err);
+            return null;
+        }
+    }
+
+    async function fetchBadgeSet(url, headers) {
+        try {
+            const res = await fetch(url, { headers });
+            if (!res.ok) return;
+            const json = await res.json();
+            for (const badge of (json.data || [])) {
+                // Use the highest version available per badge set.
+                const versions = (badge.versions || []).slice().sort((a, b) => Number(b.id) - Number(a.id));
+                if (versions.length > 0) {
+                    const imgUrl = versions[0].image_url_2x || versions[0].image_url_1x;
+                    if (imgUrl) twitchBadges.set(badge.set_id, imgUrl);
+                }
+            }
+        } catch (err) {
+            console.warn('Twitch Chat: failed to load badges from', url, err);
+        }
+    }
+
+    async function loadTwitchBadges() {
+        const token = await getAppAccessToken();
+        if (!token || !twitchClientId) return; // No creds → no badges, chat still works.
+
+        const headers = {
+            'Authorization': `Bearer ${token}`,
+            'Client-Id': twitchClientId,
+        };
+
+        // Global badges.
+        await fetchBadgeSet('https://api.twitch.tv/helix/chat/badges/global', headers);
+
+        // Channel-specific badges (e.g. custom subscriber tiers) for this broadcaster.
+        // Written after the global set so channel custom badges override global ones.
+        if (twitchUserId) {
+            await fetchBadgeSet(
+                `https://api.twitch.tv/helix/chat/badges?broadcaster_id=${twitchUserId}`,
+                headers
+            );
+        }
+    }
+
+    // Renders the badge HTML for a message. The tags.badges string from Twitch
+    // looks like "subscriber/2,broadcaster/1" — comma-separated name/version
+    // pairs. Each badge is looked up in the twitchBadges map (which may contain
+    // either channel-specific or global URLs for that set). Channel-specific
+    // entries override global ones since loadTwitchBadges writes global first.
+    function renderBadges(badgesTagValue) {
+        if (!badgesTagValue) return '';
+        const parts = badgesTagValue.split(',').filter(Boolean);
+        const imgs = [];
+        for (const part of parts) {
+            const slashIdx = part.indexOf('/');
+            const set_id = slashIdx === -1 ? part : part.slice(0, slashIdx);
+            const version = slashIdx === -1 ? '' : part.slice(slashIdx + 1);
+            // Check for channel-specific badge first (set_id includes version),
+            // then fall back to just the set_id (global badge).
+            const url = twitchBadges.get(`${set_id}/${version}`) || twitchBadges.get(set_id);
+            if (url) {
+                imgs.push(`<img class="badge" src="${url}" alt="${escapeHtml(set_id)}" title="${escapeHtml(set_id)}">`);
+            }
+        }
+        if (imgs.length === 0) return '';
+        return `<span class="badges">${imgs.join('')}</span>`;
     }
 
     // ---------------------------------------------------------------------
@@ -279,8 +386,9 @@ function connectTwitchChat({
             const displayName = tags['display-name'] || username;
             const color = tags.color || hashColor(username);
             const html = renderMessage(message, tags.emotes);
+            const badgesHtml = renderBadges(tags.badges);
 
-            onMessage(displayName, color, html);
+            onMessage(displayName, color, html, badgesHtml);
         }
     }
 
@@ -314,9 +422,10 @@ function connectTwitchChat({
         });
     }
 
-    // Load third-party emotes and make sure the custom font is ready before
-    // connecting so the very first message is never mismeasured/mispositioned
-    // by a consuming overlay; if either of these fail for any reason we
-    // still connect to chat (plain text/fallback font beats no chat at all).
-    Promise.all([loadThirdPartyEmotes(), waitForFont()]).finally(connectToChat);
+    // Load third-party emotes, Twitch badges, and make sure the custom font
+    // is ready before connecting so the very first message is never
+    // mismeasured/mispositioned by a consuming overlay; if any of these fail
+    // for any reason we still connect to chat (plain text/fallback font beats
+    // no chat at all).
+    Promise.all([loadThirdPartyEmotes(), loadTwitchBadges(), waitForFont()]).finally(connectToChat);
 }

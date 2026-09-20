@@ -74,7 +74,7 @@ const TwitchTokenManager = (() => {
         return readStoredTokens();
     }
 
-    async function refreshAccessToken({ clientId, clientSecret, refreshToken }) {
+    async function refreshAccessToken({ clientId, clientSecret, refreshToken, seededFrom }) {
         const body = new URLSearchParams({
             grant_type: 'refresh_token',
             refresh_token: refreshToken,
@@ -97,7 +97,19 @@ const TwitchTokenManager = (() => {
             access_token: data.access_token,
             refresh_token: data.refresh_token || refreshToken, // Twitch always rotates, but fall back just in case.
             expires_at: Date.now() + (data.expires_in || 0) * 1000,
+            seeded_from: seededFrom, // Carried forward so we can detect a new seed in secrets.local.js later.
         };
+        writeStoredTokens(tokens);
+        return tokens;
+    }
+
+    function seedTokens(seedAccessToken, seedRefreshToken) {
+        if (!seedRefreshToken) {
+            throw new Error('TwitchTokenManager: no stored tokens and no seed refresh token provided.');
+        }
+        // We don't know the seed access token's remaining lifetime, so treat
+        // it as already-expired and refresh immediately to learn a real expiry.
+        const tokens = { access_token: seedAccessToken || '', refresh_token: seedRefreshToken, expires_at: 0, seeded_from: seedRefreshToken };
         writeStoredTokens(tokens);
         return tokens;
     }
@@ -108,16 +120,18 @@ const TwitchTokenManager = (() => {
     async function getAccessToken({ clientId, clientSecret, seedAccessToken, seedRefreshToken, forceRefresh = false } = {}) {
         let tokens = readStoredTokens();
 
+        // If secrets.local.js was updated with a new seed refresh token (e.g.
+        // because the old one broke), the stored pair is from a different,
+        // stale lineage — adopt the new seed instead of continuing to refresh
+        // an invalid token forever. This also covers a stored entry that
+        // predates the seeded_from marker (tokens.seeded_from is undefined):
+        // any mismatch against the current seed is treated as stale.
+        if (tokens && seedRefreshToken && tokens.seeded_from !== seedRefreshToken && tokens.refresh_token !== seedRefreshToken) {
+            tokens = null;
+        }
+
         if (!tokens) {
-            if (!seedRefreshToken) {
-                throw new Error('TwitchTokenManager: no stored tokens and no seed refresh token provided.');
-            }
-            // Seed localStorage from secrets.local.js the very first time this
-            // runs on this machine. We don't know the seed access token's
-            // remaining lifetime, so treat it as already-expired and refresh
-            // immediately to learn a real expiry.
-            tokens = { access_token: seedAccessToken || '', refresh_token: seedRefreshToken, expires_at: 0 };
-            writeStoredTokens(tokens);
+            tokens = seedTokens(seedAccessToken, seedRefreshToken);
         }
 
         const nearExpiry = !tokens.expires_at || Date.now() > tokens.expires_at - REFRESH_MARGIN_MS;
@@ -134,8 +148,20 @@ const TwitchTokenManager = (() => {
         }
 
         try {
-            const refreshed = await refreshAccessToken({ clientId, clientSecret, refreshToken: tokens.refresh_token });
-            return refreshed.access_token;
+            try {
+                const refreshed = await refreshAccessToken({ clientId, clientSecret, refreshToken: tokens.refresh_token, seededFrom: tokens.seeded_from });
+                return refreshed.access_token;
+            } catch (err) {
+                // Last resort: if the stored refresh token wasn't already the
+                // current seed, the seed itself might still be unused/valid —
+                // try it once directly before giving up.
+                if (seedRefreshToken && tokens.refresh_token !== seedRefreshToken) {
+                    const reseeded = seedTokens(seedAccessToken, seedRefreshToken);
+                    const refreshed = await refreshAccessToken({ clientId, clientSecret, refreshToken: reseeded.refresh_token, seededFrom: seedRefreshToken });
+                    return refreshed.access_token;
+                }
+                throw err;
+            }
         } finally {
             releaseLock();
         }

@@ -31,9 +31,12 @@ function initChatOverlay({
     enableSceneSwitching = true,
     obsWebSocketUrl = 'ws://localhost:4455',
     obsWebSocketPassword = '',
-    // Maps a layout name to a lowercase keyword matched against the current
-    // OBS scene name (substring match) to decide which layout to show.
-    sceneLayoutKeywords = { stack: 'stack', popup: 'popup', latest: 'latest' },
+    // Maps a layout name to the list of exact OBS scene names (case-insensitive)
+    // that should activate it.
+    sceneLayoutNames = { stack: [], popup: [], latest: [] },
+    // Shown whenever obs-websocket reports a scene that isn't listed in
+    // sceneLayoutNames above.
+    unrecognizedSceneLayout = 'latest',
 } = {}) {
     const stackConfig = { displayDuration: 0, maxVisible: 25, ...stack };
     const popupConfig = { displayDuration: 6000, maxVisible: 12, ...popup };
@@ -57,17 +60,13 @@ function initChatOverlay({
 
     setActiveLayout(defaultLayout);
 
-    if (enableSceneSwitching) {
-        connectObsWebSocket({
-            url: obsWebSocketUrl,
-            password: obsWebSocketPassword,
-            onSceneChanged: (sceneName) => {
-                const lower = sceneName.toLowerCase();
-                const match = Object.keys(sceneLayoutKeywords)
-                    .find((layout) => lower.includes(sceneLayoutKeywords[layout].toLowerCase()));
-                if (match) setActiveLayout(match);
-            },
-        });
+    // Small badge shown only while the obs-websocket connection is down, so
+    // scene-based layout switching may be stale/stuck until it reconnects.
+    const obsStatusEl = document.getElementById('obs-status');
+
+    function setObsStatus(status) {
+        if (!obsStatusEl) return;
+        obsStatusEl.classList.toggle('is-visible', status === 'disconnected');
     }
 
     // -----------------------------------------------------------------
@@ -200,7 +199,25 @@ function initChatOverlay({
             }, latestConfig.displayDuration);
         }
 
-        return { spawn };
+        // Called whenever this layout becomes the active one. Its fade-out
+        // timer above keeps running in real time even while hidden, so by
+        // the time a scene switch activates it, the last message may have
+        // already faded — re-show it (and restart the timer) so switching
+        // scenes always surfaces the most recent message instead of a
+        // stale blank box.
+        function activate() {
+            if (!box.hasChildNodes()) return;
+            clearTimeout(expireTimer);
+            box.classList.remove('is-visible');
+            void box.offsetWidth;
+            box.classList.add('is-visible');
+
+            expireTimer = setTimeout(() => {
+                box.classList.remove('is-visible');
+            }, latestConfig.displayDuration);
+        }
+
+        return { spawn, activate };
     }
 
     const stackLayout = initStackLayout();
@@ -211,6 +228,22 @@ function initChatOverlay({
         stackLayout.spawn(rowHtml, extraClass, isChatRow);
         popupLayout.spawn(rowHtml, extraClass, isChatRow);
         latestLayout.spawn(rowHtml, extraClass, isChatRow);
+    }
+
+    if (enableSceneSwitching) {
+        connectObsWebSocket({
+            url: obsWebSocketUrl,
+            password: obsWebSocketPassword,
+            onSceneChanged: (sceneName) => {
+                const lower = sceneName.toLowerCase();
+                const match = Object.keys(sceneLayoutNames)
+                    .find((layout) => sceneLayoutNames[layout].some((name) => name.toLowerCase() === lower));
+                const layoutName = match || unrecognizedSceneLayout;
+                setActiveLayout(layoutName);
+                if (layoutName === 'latest') latestLayout.activate();
+            },
+            onStatusChange: setObsStatus,
+        });
     }
 
     // -----------------------------------------------------------------

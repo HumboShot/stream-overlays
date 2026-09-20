@@ -39,13 +39,14 @@ initChatOverlay({
     obsWebSocketUrl: 'ws://localhost:4455',
     obsWebSocketPassword: typeof OBS_WEBSOCKET_PASSWORD !== 'undefined' ? OBS_WEBSOCKET_PASSWORD : '',
 
-    // Maps a layout name to a keyword matched (case-insensitively, substring)
-    // against your current OBS scene name. E.g. a scene named "Just Chatting
-    // - Stack Chat" will match the "stack" layout. Update these to match
-    // your actual scene names, or rename your scenes to contain these words.
-    sceneLayoutKeywords: {
-        stack: 'stack',
-        popup: 'popup',
-        latest: 'latest',
+    // Maps a layout name to the exact OBS scene names (case-insensitive) that
+    // should activate it. Replace these placeholders with your actual scene names.
+    sceneLayoutNames: {
+        stack: ['Talking'],
+        popup: ['Intro', 'AFK', "Ending"],
+        latest: ['Gaming', '4:3 Gaming', 'Website Middle Showcase', 'Desktop', 'Display Capture Gaming'],
     },
+
+    // Shown whenever obs-websocket reports a scene that isn't listed above.
+    unrecognizedSceneLayout: 'latest',
 });

@@ -34,7 +34,7 @@ The AFK/Ending/Starting screens each link `../shared/overlay-common.css` and `..
 3. **OBS scene-based layout switching** uses OBS's built-in obs-websocket server:
    - In OBS: Tools > WebSocket Server Settings > enable the server, note the password (or disable authentication).
    - Put the password in `OBS_WEBSOCKET_PASSWORD` in `shared/secrets.local.js`.
-   - Make sure your relevant OBS scenes contain the keywords `stack`, `popup`, or `latest` in their names (case-insensitive, e.g. "Just Chatting - Stack Chat"), or edit `sceneLayoutKeywords` in `chat-overlay/chat-overlay.config.js` to match your actual scene names.
+   - List your exact OBS scene names (case-insensitive) under `sceneLayoutNames` in `chat-overlay/chat-overlay.config.js` — one array per layout (`stack`, `popup`, `latest`). Switching to a scene not listed anywhere falls back to `unrecognizedSceneLayout` (default `latest`).
    - If you don't want to use obs-websocket at all, set `enableSceneSwitching: false` in the config and it'll always show `defaultLayout`.
 4. Add `chat-overlay/chat-overlay.html` as a single OBS Browser Source (replacing the old three sources).
 

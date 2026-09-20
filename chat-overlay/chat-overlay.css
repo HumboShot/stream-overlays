@@ -348,3 +348,75 @@ body {
     transform: translateY(0) scale(1);
     transition: opacity 0.3s ease-out, transform 0.3s ease-out;
 }
+
+/* =======================================================================
+   OBS CONNECTION STATUS — small badge shown only while the obs-websocket
+   connection is down (see chat-overlay.js/shared/obs-websocket-client.js).
+   Same box treatment as the layouts above, with a red accent so it reads
+   as a warning rather than a chat/event row.
+   ======================================================================= */
+#obs-status {
+    position: absolute;
+    right: 16px;
+    bottom: 16px;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    border: 2px solid #ff4136;
+    border-radius: 4px;
+    background: linear-gradient(90deg, #1e0930 0%, #0f0920 55%, #051119 100%);
+    color: #ff4136;
+    font-size: 16px;
+    line-height: 1.4;
+    text-shadow: 0 0 10px rgba(255, 65, 54, 0.6);
+    box-shadow: 0 0 18px rgba(255, 65, 54, 0.4);
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+}
+
+#obs-status.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+#obs-status::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 2px;
+    pointer-events: none;
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.22) 50%);
+    background-size: 100% 3px;
+    z-index: 1;
+}
+
+#obs-status .obs-status-icon,
+#obs-status .obs-status-text {
+    position: relative;
+    z-index: 2;
+}
+
+#obs-status .obs-status-icon {
+    font-size: 1.2em;
+    animation: obs-status-pulse 1.4s ease-in-out infinite;
+}
+
+#obs-status .obs-status-text {
+    font-weight: bold;
+}
+
+@keyframes obs-status-pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.4;
+    }
+}

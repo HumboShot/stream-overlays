@@ -25,6 +25,14 @@
         <div id="latest-message"></div>
     </div>
 
+    <!-- Shown by chat-overlay.js only while the obs-websocket connection is
+         down (see shared/obs-websocket-client.js) — lets you notice a bad
+         url/password without opening the browser source's dev console. -->
+    <div id="obs-status">
+        <span class="obs-status-icon">⚠</span>
+        <span class="obs-status-text">OBS disconnected</span>
+    </div>
+
     <script src="../shared/twitch-chat.js"></script>
     <script src="../shared/twitch-token-manager.js"></script>
     <script src="../shared/twitch-eventsub.js"></script>

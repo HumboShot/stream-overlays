@@ -8,6 +8,7 @@ initOverlay({
         "Network disconnect imminent. Please prepare for data stream termination.",
         "Catch the latest !vods if you missed any of today's transmissions.",
         "Access !socials to maintain connection to the community network offline.",
+        "Off platform channels are up and running, check out the !dojo for more information"
     ],
     pauseTime: 8000,
 });

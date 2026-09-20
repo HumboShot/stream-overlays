@@ -9,12 +9,12 @@
 function initChatPopup({
     channel,
     twitchUserId,           // Numeric Twitch user ID, needed to query 7TV/BTTV for this channel's
-                             // emotes (their APIs key channel lookups by ID, not login). This is
-                             // public info, not a secret — safe to hardcode like the channel name.
+    // emotes (their APIs key channel lookups by ID, not login). This is
+    // public info, not a secret — safe to hardcode like the channel name.
     twitchClientId,         // Twitch API Client ID, used with the secret to fetch badges.
     twitchClientSecret,     // Twitch API Client Secret, used to mint a badge-fetch token.
-    displayDuration = 6000, // How long a toast stays fully visible before it starts fading out.
-    maxVisible = 12,        // Hard cap on simultaneous toasts so a busy chat doesn't pile up forever.
+    displayDuration = 60000, // How long a toast stays fully visible before it starts fading out.
+    maxVisible = 25,        // Hard cap on simultaneous toasts so a busy chat doesn't pile up forever.
     hideCommands = true,    // Drop messages that start with "!" (bot commands) to reduce noise.
 } = {}) {
     const layer = document.getElementById('popup-layer');

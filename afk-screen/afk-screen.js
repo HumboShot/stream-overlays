@@ -11,6 +11,7 @@ initOverlay({
         "Check out !socials while you wait to stay connected to the network.",
         "Want to support the stream? Feel free to follow or subscribe! Every bit of support helps keep the stream running.",
         "Ads might play while you wait, but don't worry, we won't let them interrupt the stream. Just sit back and relax.",
+        "Consider joining the discord server to chat with the community !dojo (It's very work in progress, so bear with us!)",
     ],
     pauseTime: 5000,
 });

@@ -10,6 +10,7 @@ initOverlay({
         "Remember to follow if you want to be notified when I go live!",
         "The stream will be starting shortly. Grab a snack and get comfortable!",
         "Subscribing gives you access to exclusive emotes and helps support the stream. Every bit of support helps keep the stream running!",
+        "Consider joining the discord server to chat with the community !dojo (It's very work in progress, so bear with us!)",
     ],
     pauseTime: 8000,
 });

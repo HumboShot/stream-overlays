@@ -1,23 +1,23 @@
-// Shared Twitch chat engine used by every chat-based overlay in this repo
-// (chat-popup, chat-stack, and any future ones). Connects read-only to
-// Twitch chat via a raw WebSocket to Twitch's IRC gateway (anonymous
-// "justinfan" login, no OAuth/secrets needed), resolves both native Twitch
-// emotes and 7TV / BTTV / FFZ emotes to inline images, and calls back into
-// the overlay's own onMessage(displayName, color, html, badgesHtml) for every qualifying
-// chat message. Each overlay is responsible for its own visual
-// presentation/lifecycle (see chat-popup.js and chat-stack.js).
+// This is the shared Twitch chat engine. Every chat-based overlay in this repo
+// uses it (chat-popup, chat-stack, and any future overlays). It connects read-only to
+// Twitch chat through a raw WebSocket to the Twitch IRC gateway. It uses an anonymous
+// "justinfan" login, so it needs no OAuth or secrets. It resolves both native Twitch
+// emotes and 7TV, BTTV, and FFZ emotes to inline images. It calls back into
+// the overlay's own onMessage(displayName, color, html, badgesHtml) for each qualifying
+// chat message. Each overlay handles its own visual
+// presentation and lifecycle (see chat-popup.js and chat-stack.js).
 //
-// A vanilla WebSocket is used instead of a library (e.g. tmi.js) because
-// tmi.js's npm package doesn't ship a browser-ready bundle (only raw
-// CommonJS source meant to be run through a bundler), and this repo's pages
-// are opened directly as local files in OBS/Chrome (no server, no build
-// step) — ES module scripts are also blocked entirely under file:// by
-// Chromium's CORS rules, so even a CDN-hosted ESM build wouldn't work here.
+// This code uses a plain WebSocket instead of a library such as tmi.js.
+// The tmi.js npm package does not ship a browser-ready bundle. It ships only raw
+// CommonJS source meant to run through a bundler. This repo's pages
+// open directly as local files in OBS or Chrome, with no server and no build
+// step. Chromium also blocks ES module scripts entirely under file://,
+// so even a CDN-hosted ESM build would not work here.
 
-// Escapes HTML special characters so raw chat text/usernames can never
-// inject markup into the page. Exposed globally (not nested inside
-// connectTwitchChat) since every consuming overlay needs it when building
-// its own message markup around the html connectTwitchChat hands back.
+// Escapes HTML special characters. This stops raw chat text and usernames
+// from injecting markup into the page. This function is global, not nested
+// inside connectTwitchChat, because every consuming overlay needs it when it
+// builds its own message markup around the HTML that connectTwitchChat returns.
 function escapeHtml(str) {
     return str
         .replace(/&/g, '&amp;')
@@ -27,11 +27,11 @@ function escapeHtml(str) {
         .replace(/'/g, '&#39;');
 }
 
-// Adds the 'is-emote-only' class to a message row when it contains exactly
-// one emote and no other visible text (e.g. a chat that is just "PogChamp").
-// Lets each overlay's CSS render solo emotes extra large. Call right after
-// the overlay builds its own row markup; the row is expected to contain a
-// ".message" span holding the html from connectTwitchChat's onMessage.
+// Adds the 'is-emote-only' class to a message row when the row has exactly
+// one emote and no other visible text, for example a chat message that is just "PogChamp".
+// This lets each overlay's CSS render solo emotes extra large. Call this function right after
+// the overlay builds its own row markup. The row must contain a
+// ".message" span that holds the HTML from connectTwitchChat's onMessage.
 function markSoloEmote(row) {
     const message = row.querySelector('.message');
     if (message && message.querySelectorAll('.emote').length === 1 && message.textContent.trim() === '') {
@@ -41,25 +41,25 @@ function markSoloEmote(row) {
 
 function connectTwitchChat({
     channel,
-    twitchUserId,           // Numeric Twitch user ID, needed to query 7TV/BTTV for this channel's
-                             // emotes (their APIs key channel lookups by ID, not login). This is
-                             // public info, not a secret — safe to hardcode like the channel name.
+    twitchUserId,           // Numeric Twitch user ID. Needed to query 7TV and BTTV for this channel's
+                             // emotes, because their APIs key channel lookups by ID, not login. This ID is
+                             // public info, not a secret. It is safe to hardcode, like the channel name.
     hideCommands = true,    // Drop messages that start with "!" (bot commands) to reduce noise.
-    twitchClientId,         // Optional. Twitch API Client ID — used with twitchClientSecret to mint
-                             // an app access token for fetching chat badges. Public info.
-    twitchClientSecret,     // Optional. Twitch API Client Secret — used to mint a short-lived app
-                             // access token (client-credentials flow) that lets us list global and
-                             // channel-specific badge image URLs from Helix. Treat as a secret.
-    onMessage,              // (displayName, color, html, badgesHtml) => void — called for each qualifying message.
+    twitchClientId,         // Optional. Twitch API Client ID. Used with twitchClientSecret to mint
+                             // an app access token for fetching chat badges. This ID is public info.
+    twitchClientSecret,     // Optional. Twitch API Client Secret. Used to mint a short-lived app
+                             // access token, through the client-credentials flow, to list global and
+                             // channel-specific badge image URLs from Helix. Treat this secret as private.
+    onMessage,              // (displayName, color, html, badgesHtml) => void. Called for each qualifying message.
 } = {}) {
     // ---------------------------------------------------------------------
     // THIRD-PARTY EMOTES (7TV / BTTV / FFZ)
-    // Built once at startup into a single Map<name, imageUrl>. Twitch chat
-    // doesn't tag these in IRC — they're just plain words we match against
-    // each provider's emote list for this channel (+ their global sets).
-    // Priority on name collisions: 7TV channel > 7TV global > BTTV channel >
-    // BTTV global > FFZ channel — channel-specific emotes win over global,
-    // and 7TV wins over BTTV/FFZ.
+    // This map builds once at startup, into a single Map<name, imageUrl>. Twitch chat
+    // does not tag these emotes in IRC. They are plain words that this code matches against
+    // each provider's emote list for this channel, plus their global sets.
+    // Priority order for name collisions: 7TV channel, then 7TV global, then BTTV channel,
+    // then BTTV global, then FFZ channel. Channel-specific emotes win over global emotes,
+    // and 7TV emotes win over BTTV and FFZ emotes.
     // ---------------------------------------------------------------------
     const thirdPartyEmotes = new Map();
 
@@ -124,17 +124,17 @@ function connectTwitchChat({
 
     // ---------------------------------------------------------------------
     // TWITCH BADGES
-    // Badge image URLs come from the Twitch Helix API. Listing them (even the
-    // global set) requires an app access token, which we mint at startup via
-    // the OAuth client-credentials flow using twitchClientId + twitchClientSecret.
-    // The result is a Map<"set_id/version", imageUrl> used to render small
+    // Badge image URLs come from the Twitch Helix API. Listing them, even the
+    // global set, needs an app access token. This code mints that token at startup, using
+    // the OAuth client-credentials flow with twitchClientId and twitchClientSecret.
+    // The result is a Map<"set_id/version", imageUrl>. This code uses it to render small
     // inline badge images next to each user's name.
     // ---------------------------------------------------------------------
     const twitchBadges = new Map();
 
-    // Mint a short-lived app access token (client_credentials grant). Returns
-    // the token string, or null if we have no credentials or the request fails
-    // (e.g. invalid client id/secret) — badges then simply don't render and
+    // Mints a short-lived app access token, using the client_credentials grant. Returns
+    // the token string, or null if there are no credentials or the request fails,
+    // for example with an invalid client ID or secret. Badges then do not render, but
     // chat keeps working.
     async function getAppAccessToken() {
         if (!twitchClientId || !twitchClientSecret) return null;
@@ -166,7 +166,7 @@ function connectTwitchChat({
             if (!res.ok) return;
             const json = await res.json();
             for (const badge of (json.data || [])) {
-                // Use the highest version available per badge set.
+                // Use the highest available version for each badge set.
                 const versions = (badge.versions || []).slice().sort((a, b) => Number(b.id) - Number(a.id));
                 if (versions.length > 0) {
                     const imgUrl = versions[0].image_url_2x || versions[0].image_url_1x;
@@ -180,7 +180,7 @@ function connectTwitchChat({
 
     async function loadTwitchBadges() {
         const token = await getAppAccessToken();
-        if (!token || !twitchClientId) return; // No creds → no badges, chat still works.
+        if (!token || !twitchClientId) return; // With no credentials, badges do not load, but chat still works.
 
         const headers = {
             'Authorization': `Bearer ${token}`,
@@ -190,8 +190,8 @@ function connectTwitchChat({
         // Global badges.
         await fetchBadgeSet('https://api.twitch.tv/helix/chat/badges/global', headers);
 
-        // Channel-specific badges (e.g. custom subscriber tiers) for this broadcaster.
-        // Written after the global set so channel custom badges override global ones.
+        // Channel-specific badges for this broadcaster, for example custom subscriber tiers.
+        // This code writes these after the global set, so channel custom badges override global ones.
         if (twitchUserId) {
             await fetchBadgeSet(
                 `https://api.twitch.tv/helix/chat/badges?broadcaster_id=${twitchUserId}`,
@@ -201,10 +201,10 @@ function connectTwitchChat({
     }
 
     // Renders the badge HTML for a message. The tags.badges string from Twitch
-    // looks like "subscriber/2,broadcaster/1" — comma-separated name/version
-    // pairs. Each badge is looked up in the twitchBadges map (which may contain
-    // either channel-specific or global URLs for that set). Channel-specific
-    // entries override global ones since loadTwitchBadges writes global first.
+    // looks like "subscriber/2,broadcaster/1": comma-separated name and version
+    // pairs. This code looks up each badge in the twitchBadges map. That map may hold
+    // either channel-specific or global URLs for each set. Channel-specific
+    // entries override global ones, because loadTwitchBadges writes the global set first.
     function renderBadges(badgesTagValue) {
         if (!badgesTagValue) return '';
         const parts = badgesTagValue.split(',').filter(Boolean);
@@ -213,8 +213,8 @@ function connectTwitchChat({
             const slashIdx = part.indexOf('/');
             const set_id = slashIdx === -1 ? part : part.slice(0, slashIdx);
             const version = slashIdx === -1 ? '' : part.slice(slashIdx + 1);
-            // Check for channel-specific badge first (set_id includes version),
-            // then fall back to just the set_id (global badge).
+            // Check for a channel-specific badge first, using set_id with version.
+            // If none exists, fall back to just the set_id, for the global badge.
             const url = twitchBadges.get(`${set_id}/${version}`) || twitchBadges.get(set_id);
             if (url) {
                 imgs.push(`<img class="badge" src="${url}" alt="${escapeHtml(set_id)}" title="${escapeHtml(set_id)}">`);
@@ -226,15 +226,15 @@ function connectTwitchChat({
 
     // ---------------------------------------------------------------------
     // MESSAGE RENDERING
-    // Two passes: first swap out native Twitch emotes using the exact
-    // character ranges Twitch gives us in the message's "emotes" IRCv3 tag,
-    // then scan whatever plain text is left word-by-word against the
-    // 7TV/BTTV/FFZ map built above. Everything else gets HTML-escaped so raw
+    // This code runs in two passes. First, it swaps out native Twitch emotes, using the exact
+    // character ranges that Twitch gives in the message's "emotes" IRCv3 tag.
+    // Then it scans the remaining plain text, word by word, against the
+    // 7TV/BTTV/FFZ map built above. It HTML-escapes everything else, so raw
     // chat text can never inject markup into the page.
     // ---------------------------------------------------------------------
 
-    // Twitch's "emotes" tag looks like "25:0-4,7-11/1902:15-19" — one or more
-    // "emoteId:range,range" groups separated by "/". Converts that into a
+    // Twitch's "emotes" tag looks like "25:0-4,7-11/1902:15-19": one or more
+    // "emoteId:range,range" groups, separated by "/". This function converts that into a
     // flat, sorted list of { start, end, id } ranges into the raw message.
     function buildEmoteRanges(emotesTagValue) {
         const ranges = [];
@@ -253,8 +253,8 @@ function connectTwitchChat({
     }
 
     function renderPlainSegment(segment) {
-        // Splits on whitespace (keeping the whitespace itself via the
-        // capturing group) so multi-word messages stay readable, and checks
+        // Splits on whitespace, keeping the whitespace itself through the
+        // capturing group, so multi-word messages stay readable. Checks
         // each whole word against the merged 7TV/BTTV/FFZ emote map.
         return segment
             .split(/(\s+)/)
@@ -275,7 +275,7 @@ function connectTwitchChat({
         let cursor = 0;
 
         for (const range of ranges) {
-            if (range.start < cursor) continue; // Skip overlapping/duplicate ranges defensively.
+            if (range.start < cursor) continue; // Skip overlapping or duplicate ranges, as a safety check.
             html += renderPlainSegment(text.slice(cursor, range.start));
             const code = text.slice(range.start, range.end + 1);
             html += `<img class="emote" src="https://static-cdn.jtvnw.net/emoticons/v2/${range.id}/default/dark/2.0" alt="${escapeHtml(code)}" title="${escapeHtml(code)}">`;
@@ -285,8 +285,8 @@ function connectTwitchChat({
         return html;
     }
 
-    // Deterministically hashes a username to an HSL hue so users without a
-    // set chat color still get a consistent, distinguishable color.
+    // Hashes a username to an HSL hue in a repeatable way. This gives users
+    // without a set chat color a color that stays consistent and easy to tell apart.
     function hashColor(username) {
         let hash = 0;
         for (let i = 0; i < username.length; i++) {
@@ -296,13 +296,13 @@ function connectTwitchChat({
         return `hsl(${hue}, 70%, 65%)`;
     }
 
-    // Explicitly forces the "Share Tech Mono" web font to load and waits for
-    // it (rather than relying on document.fonts.ready, which can resolve
-    // immediately if the font hasn't been used to render anything yet).
-    // Overlays whose message boxes are sized to fit their text (e.g.
-    // chat-popup's randomly-positioned toasts) depend on final font metrics
-    // being known before the very first message is measured/positioned, so
-    // no message is ever delivered until this settles.
+    // Forces the "Share Tech Mono" web font to load, and waits for
+    // it. This is more reliable than document.fonts.ready, which can resolve
+    // immediately if the font has not rendered anything yet.
+    // Overlays whose message boxes size themselves to fit their text, for example
+    // chat-popup's randomly-positioned toasts, need the final font metrics
+    // known before the first message is measured and positioned. So this code delivers
+    // no message until the font load settles.
     async function waitForFont() {
         try {
             await document.fonts.load("22px 'Share Tech Mono'");
@@ -313,13 +313,13 @@ function connectTwitchChat({
     }
 
     // ---------------------------------------------------------------------
-    // TWITCH IRC (raw WebSocket, anonymous/read-only — no OAuth token needed)
-    // Twitch's IRC gateway accepts a random "justinfan#####" nick with any
-    // password for anonymous, read-only access to a channel's chat.
+    // TWITCH IRC (raw WebSocket, anonymous and read-only, no OAuth token needed)
+    // The Twitch IRC gateway accepts a random "justinfan#####" nick with any
+    // password, for anonymous, read-only access to a channel's chat.
     // ---------------------------------------------------------------------
     function unescapeTagValue(value) {
-        // Per IRCv3 tag-value escaping: \s -> space, \: -> ;, \\ -> \, plus
-        // \r and \n. Twitch only really uses \s in practice, but handling
+        // This follows IRCv3 tag-value escaping: \s becomes a space, \: becomes ;, \\ becomes \, plus
+        // \r and \n. Twitch mostly uses only \s in practice, but handling
         // the rest costs nothing.
         return value
             .replace(/\\s/g, ' ')
@@ -329,7 +329,7 @@ function connectTwitchChat({
             .replace(/\\\\/g, '\\');
     }
 
-    // Parses a single raw IRC(v3) line into { tags, prefix, command, params }.
+    // Parses one raw IRC(v3) line into { tags, prefix, command, params }.
     function parseIrcLine(line) {
         let rest = line;
         const tags = {};
@@ -364,7 +364,7 @@ function connectTwitchChat({
         return { tags, prefix, command, params };
     }
 
-    // Strips the CTCP wrapper around /me messages, e.g. "\u0001ACTION foo\u0001" -> "foo".
+    // Strips the CTCP wrapper around /me messages. For example, it converts "\u0001ACTION foo\u0001" -> "foo".
     function stripActionWrapper(message) {
         const match = message.match(/^\u0001ACTION (.*)\u0001$/);
         return match ? match[1] : message;
@@ -398,7 +398,7 @@ function connectTwitchChat({
 
         ws.addEventListener('open', () => {
             ws.send('CAP REQ :twitch.tv/tags twitch.tv/commands');
-            ws.send('PASS SCHMOOPIIE'); // Ignored for anonymous justinfan logins; any value works.
+            ws.send('PASS SCHMOOPIIE'); // Anonymous justinfan logins ignore this; any value works.
             ws.send(`NICK justinfan${Math.floor(Math.random() * 100000)}`);
             ws.send(`JOIN #${channel}`);
         });
@@ -406,7 +406,7 @@ function connectTwitchChat({
         ws.addEventListener('message', (event) => {
             buffer += event.data;
             const lines = buffer.split('\r\n');
-            buffer = lines.pop(); // Keep any trailing partial line for the next message.
+            buffer = lines.pop(); // Keep any trailing partial line for the next message event.
             for (const line of lines) {
                 if (line) handleIrcLine(ws, line);
             }
@@ -422,10 +422,10 @@ function connectTwitchChat({
         });
     }
 
-    // Load third-party emotes, Twitch badges, and make sure the custom font
-    // is ready before connecting so the very first message is never
-    // mismeasured/mispositioned by a consuming overlay; if any of these fail
-    // for any reason we still connect to chat (plain text/fallback font beats
-    // no chat at all).
+    // Load third-party emotes and Twitch badges, and make sure the custom font
+    // is ready, before connecting. This stops a consuming overlay from
+    // mismeasuring or mispositioning the first message. If any of these steps fail
+    // for any reason, this code still connects to chat. Plain text with a
+    // fallback font is better than no chat at all.
     Promise.all([loadThirdPartyEmotes(), loadTwitchBadges(), waitForFont()]).finally(connectToChat);
 }

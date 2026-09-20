@@ -11,10 +11,9 @@
 <body>
     <!--
         Panel editor guide:
-        1) Open this file in a browser.
-        2) Use the fields below to update text live.
-        3) Screenshot only the 320x160 panel area.
-
+        1. Open this file in a browser.
+        2. Use the fields below to update the text live.
+        3. Take a screenshot of only the 320x160 panel area.
     -->
     <main class="panel-tool">
         <section class="panel-canvas" aria-label="Twitch panel template preview">
@@ -141,17 +140,17 @@
                         await document.fonts.load("400 31px 'Share Tech Mono'");
                         await document.fonts.load("400 10px 'Share Tech Mono'");
                     } catch (fontError) {
-                        // Ignore font preload errors; export will fall back gracefully.
+                        // Ignore font preload errors. The export still falls back gracefully.
                     }
                     if (typeof document.fonts.ready === 'object') {
                         await document.fonts.ready;
                     }
                 }
 
-                // Render at a higher internal resolution (supersampling) so thin
-                // text/border edges get proper anti-aliasing, then downscale to the
+                // Render at a higher internal resolution (supersampling), so thin
+                // text and border edges get proper anti-aliasing. Then downscale to the
                 // required 320x160 output. Rendering directly at 1:1 produces
-                // chunky/blurry edges compared to the browser's own display.
+                // chunky, blurry edges compared to the browser's own display.
                 const supersample = 3;
                 const highResCanvas = await window.htmlToImage.toCanvas(panelCanvas, {
                     width: 320,

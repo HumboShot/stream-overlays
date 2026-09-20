@@ -1,22 +1,22 @@
-// Chat Overlay — merges chat-stack, chat-popup, and chat-latest into one
-// page/OBS Browser Source. All three layouts run simultaneously (each keeps
-// receiving every chat message + event in the background), but only one is
-// visible at a time — see setActiveLayout()/CSS .is-active. Which layout is
-// active is driven by the current OBS scene name via obs-websocket (see
-// shared/obs-websocket-client.js), falling back to `defaultLayout` if
-// obs-websocket isn't reachable/configured.
+// Chat Overlay: merges chat-stack, chat-popup, and chat-latest into one
+// page and OBS Browser Source. All three layouts run at the same time. Each one keeps
+// receiving every chat message and event in the background, but only one layout is
+// visible at a time (see setActiveLayout() and the CSS .is-active class). The current OBS scene name
+// drives which layout is active, through obs-websocket (see
+// shared/obs-websocket-client.js). If obs-websocket is not
+// reachable or configured, the overlay falls back to `defaultLayout`.
 //
-// On top of chat (via shared/twitch-chat.js, same as before), this also
+// On top of chat (through shared/twitch-chat.js, same as before), this file also
 // connects to Twitch EventSub (shared/twitch-eventsub.js) to show channel
-// point redeems and watch-streak notifications inline, styled as distinct
+// point redeems and watch-streak notifications inline. These show as distinct
 // "system" rows (see .row.is-event in chat-overlay.css).
 //
-// Edit the config passed to initChatOverlay() in chat-overlay.config.js to
-// change the channel, timings, scene-name mapping, etc.
+// To change the channel, timings, or scene-name mapping, edit the config passed
+// to initChatOverlay() in chat-overlay.config.js.
 
 function initChatOverlay({
     channel,
-    twitchUserId,             // Numeric Twitch user ID (also used as EventSub broadcaster_user_id).
+    twitchUserId,             // Numeric Twitch user ID. Also used as the EventSub broadcaster_user_id.
     twitchClientId,
     twitchClientSecret,
     twitchUserAccessToken,    // Seed user access token (scopes: channel:read:redemptions, user:read:chat).
@@ -27,14 +27,14 @@ function initChatOverlay({
     popup = {},               // { displayDuration = 6000, maxVisible = 12 }
     latest = {},              // { displayDuration = 10000 }
 
-    defaultLayout = 'stack',  // Used until/unless obs-websocket tells us the current scene.
+    defaultLayout = 'stack',  // Used until obs-websocket reports the current scene.
     enableSceneSwitching = true,
     obsWebSocketUrl = 'ws://localhost:4455',
     obsWebSocketPassword = '',
     // Maps a layout name to the list of exact OBS scene names (case-insensitive)
-    // that should activate it.
+    // that activate it.
     sceneLayoutNames = { stack: [], popup: [], latest: [] },
-    // Shown whenever obs-websocket reports a scene that isn't listed in
+    // Shown whenever obs-websocket reports a scene that is not listed in
     // sceneLayoutNames above.
     unrecognizedSceneLayout = 'latest',
 } = {}) {
@@ -60,8 +60,8 @@ function initChatOverlay({
 
     setActiveLayout(defaultLayout);
 
-    // Small badge shown only while the obs-websocket connection is down, so
-    // scene-based layout switching may be stale/stuck until it reconnects.
+    // Small badge shown only while the obs-websocket connection is down. Scene-based
+    // layout switching may be stale or stuck until the connection reconnects.
     const obsStatusEl = document.getElementById('obs-status');
 
     function setObsStatus(status) {
@@ -191,7 +191,7 @@ function initChatOverlay({
 
             box.className = extraClass ? extraClass : '';
             box.classList.remove('is-visible');
-            void box.offsetWidth; // Force reflow so the transition retriggers on back-to-back messages.
+            void box.offsetWidth; // Force a reflow, so the transition retriggers on back-to-back messages.
             box.classList.add('is-visible');
 
             expireTimer = setTimeout(() => {
@@ -199,12 +199,12 @@ function initChatOverlay({
             }, latestConfig.displayDuration);
         }
 
-        // Called whenever this layout becomes the active one. Its fade-out
-        // timer above keeps running in real time even while hidden, so by
-        // the time a scene switch activates it, the last message may have
-        // already faded — re-show it (and restart the timer) so switching
-        // scenes always surfaces the most recent message instead of a
-        // stale blank box.
+        // Runs whenever this layout becomes the active one. The fade-out
+        // timer above keeps running in real time, even while the layout is hidden. So by
+        // the time a scene switch activates this layout, the last message may have
+        // already faded. This function re-shows the message and restarts the timer, so switching
+        // scenes always shows the most recent message instead of a
+        // stale, blank box.
         function activate() {
             if (!box.hasChildNodes()) return;
             clearTimeout(expireTimer);

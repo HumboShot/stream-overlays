@@ -1,16 +1,16 @@
-// Shared Twitch EventSub engine — connects to Twitch's EventSub WebSocket
+// This is the shared Twitch EventSub engine. It connects to the Twitch EventSub WebSocket
 // gateway with a real user access token (see shared/twitch-token-manager.js)
 // and subscribes to:
 //   - channel.channel_points_custom_reward_redemption.add (needs channel:read:redemptions)
-//   - channel.chat.notification, filtered to notice_type "watch_streak"    (needs user:read:chat)
+//   - channel.chat.notification, filtered to notice_type "watch_streak" (needs user:read:chat)
 //
-// Unlike shared/twitch-chat.js (anonymous IRC, no auth), these events are
-// genuinely only available via EventSub, which requires an authenticated
-// user token. See shared/twitch-token-manager.js for how that token is
-// obtained/refreshed without a backend server.
+// Unlike shared/twitch-chat.js, which uses anonymous IRC with no auth, these events are
+// available only through EventSub, which needs an authenticated
+// user token. See shared/twitch-token-manager.js for how this code
+// gets and refreshes that token without a backend server.
 //
-// Call connectTwitchEvents({...}) once per page; it calls back into
-// onRedeem(...) / onWatchStreak(...) for each qualifying event.
+// Call connectTwitchEvents({...}) once per page. It calls back into
+// onRedeem(...) and onWatchStreak(...) for each qualifying event.
 
 function connectTwitchEvents({
     broadcasterUserId,      // Numeric Twitch user ID of the channel to watch (same value as twitchUserId elsewhere).
@@ -71,7 +71,7 @@ function connectTwitchEvents({
         });
         createSubscription('channel.chat.notification', '1', {
             broadcaster_user_id: broadcasterUserId,
-            user_id: broadcasterUserId, // Read chat as the broadcaster (whose token we hold).
+            user_id: broadcasterUserId, // Read chat as the broadcaster, since this code holds their token.
         });
     }
 
@@ -122,7 +122,7 @@ function connectTwitchEvents({
                 ws = socket;
                 subscribeAll();
             } else if (metadata.message_type === 'session_keepalive') {
-                // No-op — just confirms the connection is alive.
+                // Does nothing. This message only confirms the connection is alive.
             } else if (metadata.message_type === 'notification') {
                 handleNotification(payload.payload);
             } else if (metadata.message_type === 'session_reconnect') {

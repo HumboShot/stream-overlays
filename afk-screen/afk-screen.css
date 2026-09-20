@@ -1,6 +1,6 @@
-/* AFK screen — screen-specific overrides.
+/* AFK screen: screen-specific overrides.
    Shared layout, glitch effect, and typewriter styles live in
-   ../shared/overlay-common.css */
+   ../shared/overlay-common.css. */
 
 .status::before {
     content: "●";
@@ -8,5 +8,5 @@
     margin-right: 10px;
     text-shadow: 0 0 12px #ffaa00;
     animation: blink 1.5s infinite;
-    /* Calm standby pulse, slower than the other screens */
+    /* This is a calm standby pulse, slower than on the other screens. */
 }

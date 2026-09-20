@@ -10,9 +10,9 @@
 
 <body>
 
-    <!-- All three layouts live in the DOM at once; chat-overlay.js toggles
-         which one has .is-active (see chat-overlay.css) based on either the
-         current OBS scene (via obs-websocket) or the configured default. -->
+    <!-- All three layouts stay in the DOM at once. chat-overlay.js toggles
+         which one has .is-active (see chat-overlay.css), based on either the
+         current OBS scene, through obs-websocket, or the configured default. -->
     <div id="layout-stack" class="layout">
         <div id="chat-feed"></div>
     </div>
@@ -25,9 +25,9 @@
         <div id="latest-message"></div>
     </div>
 
-    <!-- Shown by chat-overlay.js only while the obs-websocket connection is
-         down (see shared/obs-websocket-client.js) — lets you notice a bad
-         url/password without opening the browser source's dev console. -->
+    <!-- chat-overlay.js shows this only while the obs-websocket connection is
+         down (see shared/obs-websocket-client.js). It lets you notice a bad
+         URL or password without opening the browser source's dev console. -->
     <div id="obs-status">
         <span class="obs-status-icon">⚠</span>
         <span class="obs-status-text">OBS disconnected</span>

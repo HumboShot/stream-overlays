@@ -1,37 +1,37 @@
-// Chat Stack overlay — uses the shared Twitch chat engine (../shared/twitch-chat.js)
-// to connect read-only to Twitch chat and resolve emotes, then renders each
-// new message as a bubble stacked at the bottom of the canvas, newest at the
-// bottom pushing older ones upward, like a normal chat log.
+// Chat Stack overlay. Uses the shared Twitch chat engine (../shared/twitch-chat.js)
+// to connect read-only to Twitch chat and resolve emotes. It then renders each
+// new message as a bubble stacked at the bottom of the canvas. The newest bubble
+// sits at the bottom and pushes older ones upward, like a normal chat log.
 //
-// This file only defines the behavior. Edit chat-stack.config.js (loaded
-// after this file) to change the channel, timings, or command behavior.
+// This file only defines the behavior. Edit chat-stack.config.js, which loads
+// after this file, to change the channel, timings, or command behavior.
 
 function initChatStack({
     channel,
     twitchUserId,            // Numeric Twitch user ID, needed to query 7TV/BTTV for this channel's
-                              // emotes (their APIs key channel lookups by ID, not login). This is
-                              // public info, not a secret — safe to hardcode like the channel name.
+                              // emotes, because their APIs key channel lookups by ID, not login. This ID is
+                              // public info, not a secret. It is safe to hardcode, like the channel name.
     twitchClientId,          // Twitch API Client ID, used with the secret to fetch badges.
     twitchClientSecret,      // Twitch API Client Secret, used to mint a badge-fetch token.
-    displayDuration = 10000, // How long (ms) each message stays on screen before it fades away.
-                              // Set to 0 to disable auto-disappear entirely — messages then only
-                              // get removed once `maxVisible` is exceeded by newer messages.
-    maxVisible = 10,         // Hard cap on stacked messages so the feed doesn't grow forever.
+    displayDuration = 10000, // How long, in ms, each message stays on screen before it fades away.
+                              // Set this to 0 to disable auto-disappear completely. Messages then only
+                              // get removed once newer messages push the count past `maxVisible`.
+    maxVisible = 10,         // Hard cap on stacked messages, so the feed does not grow forever.
     hideCommands = true,     // Drop messages that start with "!" (bot commands) to reduce noise.
 } = {}) {
     const feed = document.getElementById('chat-feed');
-    const activeMessages = []; // Index 0 = newest, last index = oldest (see spawnMessage below).
+    const activeMessages = []; // Index 0 is the newest; the last index is the oldest (see spawnMessage below).
 
     // ---------------------------------------------------------------------
     // MESSAGE LIFECYCLE
     // Each message becomes its own bubble, inserted at the front of
     // #chat-feed. Combined with `flex-direction: column-reverse` in
-    // chat-stack.css, that places the newest message at the BOTTOM of the
-    // stack and pushes older ones upward. Fades in, holds for
-    // `displayDuration` (unless it's 0, see below), then fades out and is
-    // removed from the DOM. `maxVisible` force-expires the oldest message if
-    // chat is too busy (or if displayDuration is 0 and the feed would
-    // otherwise grow forever).
+    // chat-stack.css, this places the newest message at the bottom of the
+    // stack, and pushes older ones upward. Each bubble fades in, holds for
+    // `displayDuration` (unless it is 0, see below), then fades out and
+    // is removed from the DOM. `maxVisible` force-expires the oldest message if
+    // chat is too busy, or if displayDuration is 0 and the feed would
+    // otherwise grow forever.
     // ---------------------------------------------------------------------
     function removeMessage(message) {
         if (!message || !message.isConnected || message.classList.contains('is-leaving')) return;
@@ -55,9 +55,9 @@ function initChatStack({
         markSoloEmote(row);
         message.appendChild(row);
 
-        // Newest message always goes in as the first child; with
-        // flex-direction: column-reverse (chat-stack.css) that renders it at
-        // the bottom of the feed, pushing existing messages upward.
+        // The newest message always goes in as the first child. With
+        // flex-direction: column-reverse (chat-stack.css), this renders it at
+        // the bottom of the feed, and pushes existing messages upward.
         feed.prepend(message);
         activeMessages.unshift(message);
 
@@ -65,8 +65,8 @@ function initChatStack({
             removeMessage(activeMessages[activeMessages.length - 1]);
         }
 
-        // displayDuration === 0 means "never auto-disappear" — the message
-        // then only ever leaves once maxVisible is exceeded by newer ones.
+        // displayDuration === 0 means "never auto-disappear". The message
+        // then leaves only once newer ones push the count past maxVisible.
         if (displayDuration > 0) {
             message._expireTimer = setTimeout(() => removeMessage(message), displayDuration);
         }

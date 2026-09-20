@@ -1,7 +1,7 @@
-// Starting screen — configures the shared overlay behavior (glitch effect +
-// typewriter broadcast) defined in ../shared/overlay-common.js
+// Starting screen. Configures the shared overlay behavior (glitch effect and
+// typewriter broadcast) defined in ../shared/overlay-common.js.
 //
-// Edit the messages array to change what gets shown while waiting for the
+// Edit the messages array to change what shows while waiting for the
 // stream to start.
 initOverlay({
     messages: [

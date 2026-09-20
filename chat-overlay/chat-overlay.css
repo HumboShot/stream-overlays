@@ -1,10 +1,10 @@
-/* Chat Overlay — merges chat-stack, chat-popup, and chat-latest into a
-   single page. All three #layout-* containers are always present in the
-   DOM; chat-overlay.js toggles which one has .is-active based on the
+/* Chat Overlay: merges chat-stack, chat-popup, and chat-latest into a
+   single page. All three #layout-* containers stay present in the
+   DOM. chat-overlay.js toggles which one has .is-active, based on the
    current OBS scene (see shared/obs-websocket-client.js), and only that one
-   is actually visible/rendering. Stays fully transparent so it can sit on
-   top of gameplay/webcam in OBS — only individual message/toast/box
-   elements get a background/border. */
+   is visible and rendering. The page stays fully transparent, so it can sit on
+   top of gameplay or a webcam in OBS. Only individual message, toast, and box
+   elements get a background or border. */
 
 html,
 body {
@@ -27,8 +27,8 @@ body {
     display: block;
 }
 
-/* --- Shared message look (badges/user/message/emote), reused by all three
-   layouts and by system event rows. --- */
+/* --- Shared message look (badges, user, message, emote). All three
+   layouts and the system event rows reuse this style. --- */
 .row .user {
     font-weight: bold;
     margin-right: 8px;
@@ -54,8 +54,8 @@ body {
 }
 
 .row .message .emote {
-    /* Fixed width AND height (not "auto") so the image reserves its layout
-       space immediately instead of resizing once it finishes loading. */
+    /* This uses a fixed width and height, not "auto", so the image reserves its layout
+       space right away, instead of resizing once it finishes loading. */
     width: 1.4em;
     height: 1.4em;
     object-fit: contain;
@@ -64,8 +64,8 @@ body {
 }
 
 /* A message that is just a single emote (marked by markSoloEmote in
-   shared/twitch-chat.js) renders that emote extra large, with the username
-   stacked above it and centered. */
+   shared/twitch-chat.js) renders that emote extra large. The username
+   stacks above it, and both are centered. */
 .row.is-emote-only {
     display: flex;
     flex-direction: column;
@@ -82,8 +82,8 @@ body {
 }
 
 /* --- System event rows (channel point redeems, watch streaks) ---
-   Same base box as a chat message/toast, but with a distinct accent color
-   and an icon prefix so it reads clearly as "not a chat message". */
+   This uses the same base box as a chat message or toast, but with a distinct accent color
+   and an icon prefix, so it clearly reads as "not a chat message". */
 .row.is-event {
     display: flex;
     align-items: center;
@@ -113,8 +113,8 @@ body {
 }
 
 /* =======================================================================
-   LAYOUT: STACK — messages stack in a vertical feed anchored bottom-left,
-   newest at the bottom, pushing older ones upward.
+   LAYOUT: STACK. Messages stack in a vertical feed anchored at the bottom left.
+   The newest message sits at the bottom and pushes older ones upward.
    ======================================================================= */
 #chat-feed {
     position: absolute;
@@ -204,7 +204,7 @@ body {
 }
 
 /* =======================================================================
-   LAYOUT: POPUP — each message pops up as a randomly-positioned toast.
+   LAYOUT: POPUP. Each message pops up as a randomly positioned toast.
    ======================================================================= */
 #popup-layer {
     position: relative;
@@ -227,9 +227,9 @@ body {
     text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
     box-shadow: 0 0 24px rgba(0, 0, 0, 0.5);
     z-index: 10;
-    /* See chat-popup's original comment: must be declared here (not just in
-       the keyframes) so the transform doesn't snap to `none` once
-       .is-entering's animation (no fill-mode: forwards) finishes. */
+    /* See chat-popup's original comment. Declare this transform here, not just in
+       the keyframes. Otherwise the transform snaps to `none` once
+       the .is-entering animation finishes, since that animation has no fill-mode: forwards. */
     transform: translate(-50%, -50%);
 }
 
@@ -292,8 +292,8 @@ body {
 }
 
 /* =======================================================================
-   LAYOUT: LATEST — shows only the single most recent message/event,
-   top-right, auto-hiding after a delay.
+   LAYOUT: LATEST. Shows only the single most recent message or event,
+   in the top-right corner, and hides it automatically after a delay.
    ======================================================================= */
 #latest-message {
     position: absolute;
@@ -350,10 +350,10 @@ body {
 }
 
 /* =======================================================================
-   OBS CONNECTION STATUS — small badge shown only while the obs-websocket
-   connection is down (see chat-overlay.js/shared/obs-websocket-client.js).
-   Same box treatment as the layouts above, with a red accent so it reads
-   as a warning rather than a chat/event row.
+   OBS CONNECTION STATUS. This is a small badge shown only while the obs-websocket
+   connection is down (see chat-overlay.js and shared/obs-websocket-client.js).
+   It uses the same box treatment as the layouts above, with a red accent, so it reads
+   as a warning rather than a chat or event row.
    ======================================================================= */
 #obs-status {
     position: absolute;

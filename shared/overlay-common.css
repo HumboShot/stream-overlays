@@ -1,10 +1,10 @@
-/* Shared layout/animation styles for the AFK / Ending / Starting terminal-style
+/* Shared layout and animation styles for the AFK, Ending, and Starting terminal-style
    overlays. Each screen's own stylesheet only needs to override the
-   `.status::before` LED (color/animation speed) and add any screen-specific
+   `.status::before` LED (color and animation speed), and add any screen-specific
    tweaks. */
 
 /* Full-screen layout for a 2560x1440 (4K) broadcast canvas.
-   overflow: hidden ensures no scrollbars appear on stream. */
+   overflow: hidden stops scrollbars from appearing on stream. */
 body {
     background-color: #1a0a1a;
     color: #00ffff;
@@ -18,10 +18,10 @@ body {
     box-sizing: border-box;
 }
 
-/* Scanlines Overlay
-   A ::before pseudo-element lays a semi-transparent horizontal-stripe gradient
-   over the entire screen to mimic a CRT scanline effect.
-   pointer-events: none keeps it from blocking any clicks. */
+/* Scanlines Overlay.
+   A ::before pseudo-element lays a semi-transparent, horizontal-stripe gradient
+   over the entire screen, to copy a CRT scanline effect.
+   pointer-events: none stops it from blocking any clicks. */
 body::before {
     content: " ";
     display: block;
@@ -55,9 +55,9 @@ body::before {
 }
 
 /* --- TEXT GLITCH STYLING ---
-   .starting-text is the large centre title. The ::before and ::after pseudo-elements
-   are clones of the text that get shifted and skewed via keyframe animations
-   when the 'is-glitching' class is added by JS. */
+   .starting-text is the large, center title. The ::before and ::after pseudo-elements
+   are clones of the text. Keyframe animations shift and skew these clones
+   when JS adds the 'is-glitching' class. */
 .starting-text {
     font-size: 120px;
     text-transform: uppercase;
@@ -112,8 +112,8 @@ body::before {
 }
 
 /* --- SYSTEM BROADCAST TYPING EFFECT ---
-   Container for the scrolling typewriter line at the bottom of the screen.
-   white-space: nowrap keeps the text on a single line regardless of length. */
+   This is the container for the scrolling typewriter line at the bottom of the screen.
+   white-space: nowrap keeps the text on a single line, regardless of length. */
 .broadcast-box {
     position: absolute;
     bottom: 120px;
@@ -136,8 +136,8 @@ body::before {
 }
 
 /* --- COMMAND HIGHLIGHT ---
-   Applied by JS via innerHTML replacement. Any !command token in the broadcast
-   text gets wrapped in this span, turning it yellow against the cyan body text. */
+   JS applies this class through innerHTML replacement. Each !command token in the broadcast
+   text gets wrapped in this span, which turns it yellow against the cyan body text. */
 .command-highlight {
     color: #ffde00;
     text-shadow: 0 0 12px rgba(255, 222, 0, 0.8);
@@ -145,7 +145,7 @@ body::before {
 }
 
 /* --- STREAM FOOTER FRAME ---
-   Positions the embedded ../footer/footer.html iframe along the bottom edge. */
+   This positions the embedded ../footer/footer.html iframe along the bottom edge. */
 .footer-frame {
     position: absolute;
     bottom: 0;
@@ -156,8 +156,8 @@ body::before {
 }
 
 /* --- BLINKING CURSOR ---
-   Shared by the status LED dot (see each screen's own stylesheet) and the
-   cursor character here. */
+   The status LED dot (see each screen's own stylesheet) and the
+   cursor character here share this animation. */
 @keyframes blink {
     50% {
         opacity: 0.2;

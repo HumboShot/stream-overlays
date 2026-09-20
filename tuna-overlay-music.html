@@ -6,45 +6,45 @@
     <title>PlexAmp Tuna Overlay</title>
     <link rel="stylesheet" href="nowplaying-site.css">
     <style>
-        /* Basic alignment to keep the cover and text looking good inside your terminal box */
+        /* This aligns the cover and text inside the terminal box. */
         #inner-content {
             display: flex;
             align-items: center;
             gap: 25px;
-            /* Space between cover and text */
+            /* Space between the cover and the text. */
             z-index: 50;
             position: relative;
             width: 100%;
-            /* Helps it span across the terminal box */
+            /* Helps this element span across the terminal box. */
             padding-left: 20px;
-            /* Pushes it slightly off the left wall */
+            /* Pushes this element slightly off the left wall. */
         }
 
         #cover {
             width: 150px;
-            /* Increased to match your original size */
+            /* This is larger, to match the original size. */
             height: 150px;
             object-fit: cover;
-            /* Note: We don't need border CSS here because your custom CSS already adds the purple border to all images! */
+            /* No border CSS is needed here, because the custom CSS already adds the purple border to all images. */
         }
 
         .info {
             display: flex;
             flex-direction: column;
             gap: 8px;
-            /* Slight gap between Title and Artist */
+            /* Small gap between the title and the artist. */
         }
 
         #title {
             font-size: 38px;
-            /* Huge boost to match the NowPlaying.Site scale */
+            /* This is larger, to match the NowPlaying.Site scale. */
             font-weight: bold;
             line-height: 1;
         }
 
         #artist {
             font-size: 28px;
-            /* Huge boost to match the NowPlaying.Site scale */
+            /* This is larger, to match the NowPlaying.Site scale. */
             line-height: 1;
         }
     </style>
@@ -65,10 +65,10 @@
     </div>
 
     <script>
-        // Store the current song title so we know when to change the cover
+        // Store the current song title, to track when to change the cover.
         let currentTitle = "";
 
-        // This script asks Tuna for the current song every second
+        // This function asks Tuna for the current song every second.
         function updateTuna() {
             fetch("http://localhost:1608/")
                 .then(response => response.json())
@@ -83,15 +83,15 @@
                         document.getElementById("title").innerText = data.title;
                         document.getElementById("artist").innerText = data.artists ? data.artists.join(", ") : "Unknown Artist";
 
-                        // Check if the song has changed
+                        // Check if the song has changed.
                         if (currentTitle !== data.title) {
                             currentTitle = data.title;
 
-                            // Use the exact URL Tuna provides, plus the cache-buster to force OBS to update it
+                            // Use the exact URL that Tuna provides, plus a cache-buster to force OBS to update it.
                             if (data.cover_url) {
                                 document.getElementById("cover").src = data.cover_url + "?_=" + Date.now();
                             } else {
-                                document.getElementById("cover").src = ""; // Leave blank if there's no album art
+                                document.getElementById("cover").src = ""; // Leave this blank if there is no album art.
                             }
                         }
                     }

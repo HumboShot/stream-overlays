@@ -1,7 +1,7 @@
-/* Stream Footer Component
-   Designed for a 2560px wide canvas.
-   Standalone height: 92px (2px border-top + 20px padding + 50px content + 20px padding).
-   Use as a browser source in OBS at 2560x92 positioned at the bottom of the canvas. */
+/* Stream Footer Component.
+   This is designed for a 2560px wide canvas.
+   Standalone height: 92px (2px border-top, 20px padding, 50px content, 20px padding).
+   Use this as a browser source in OBS at 2560x92, positioned at the bottom of the canvas. */
 
 html,
 body {

@@ -1,6 +1,6 @@
-/* Starting screen — screen-specific overrides.
+/* Starting screen: screen-specific overrides.
    Shared layout, glitch effect, and typewriter styles live in
-   ../shared/overlay-common.css */
+   ../shared/overlay-common.css. */
 
 .status::before {
     content: "●";

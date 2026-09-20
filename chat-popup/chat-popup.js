@@ -1,5 +1,5 @@
-// Chat Popup overlay — uses the shared Twitch chat engine (../shared/twitch-chat.js)
-// to connect read-only to Twitch chat and resolve emotes, then renders each
+// Chat Popup overlay. Uses the shared Twitch chat engine (../shared/twitch-chat.js)
+// to connect read-only to Twitch chat and resolve emotes. It then renders each
 // new message as its own terminal-style "toast" that pops up at a random
 // spot on the canvas, holds for a bit, then fades away.
 //
@@ -9,12 +9,12 @@
 function initChatPopup({
     channel,
     twitchUserId,           // Numeric Twitch user ID, needed to query 7TV/BTTV for this channel's
-    // emotes (their APIs key channel lookups by ID, not login). This is
-    // public info, not a secret — safe to hardcode like the channel name.
+    // emotes, because their APIs key channel lookups by ID, not login. This ID is
+    // public info, not a secret. It is safe to hardcode, like the channel name.
     twitchClientId,         // Twitch API Client ID, used with the secret to fetch badges.
     twitchClientSecret,     // Twitch API Client Secret, used to mint a badge-fetch token.
-    displayDuration = 60000, // How long a toast stays fully visible before it starts fading out.
-    maxVisible = 25,        // Hard cap on simultaneous toasts so a busy chat doesn't pile up forever.
+    displayDuration = 60000, // How long a toast stays fully visible before it starts to fade out.
+    maxVisible = 25,        // Hard cap on toasts shown at once, so a busy chat does not pile up forever.
     hideCommands = true,    // Drop messages that start with "!" (bot commands) to reduce noise.
 } = {}) {
     const layer = document.getElementById('popup-layer');
@@ -26,8 +26,8 @@ function initChatPopup({
 
     // ---------------------------------------------------------------------
     // TOAST LIFECYCLE
-    // Each message becomes its own absolutely-positioned box at a random
-    // spot on the canvas (see .chat-toast in chat-popup.css), fades in,
+    // Each message becomes its own absolutely positioned box at a random
+    // spot on the canvas (see .chat-toast in chat-popup.css). It fades in,
     // holds for `displayDuration`, then fades out and is removed from the
     // DOM. `maxVisible` force-expires the oldest toast if chat is too busy.
     // ---------------------------------------------------------------------

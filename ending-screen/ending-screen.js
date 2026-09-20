@@ -1,7 +1,7 @@
-// Ending screen — configures the shared overlay behavior (glitch effect +
-// typewriter broadcast) defined in ../shared/overlay-common.js
+// Ending screen. Configures the shared overlay behavior (glitch effect and
+// typewriter broadcast) defined in ../shared/overlay-common.js.
 //
-// Edit the messages array to change what gets shown on the ending screen.
+// Edit the messages array to change what shows on the ending screen.
 initOverlay({
     messages: [
         "Initiating system shutdown sequence... Thank you for connecting.",

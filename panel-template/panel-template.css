@@ -42,7 +42,7 @@ body {
     gap: 12px;
 }
 
-/* Fixed-size canvas for clean 1:1 panel screenshots. */
+/* This is a fixed-size canvas, for clean 1:1 panel screenshots. */
 .panel-canvas {
     width: var(--panel-width);
     height: var(--panel-height);

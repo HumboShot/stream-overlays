@@ -1,8 +1,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
 
-/* --- 1. THE AUTO-HIDE MAGIC --- */
-/* The AW theme secretly changes its main container to 'closed' when paused. 
-   If our CSS detects that tag, we nuke the entire OBS window! */
+/* --- 1. AUTO-HIDE --- */
+/* The AW theme changes its main container to 'closed' when playback pauses.
+   When this CSS detects that class, it hides the entire OBS window. */
 body:has(.closed) {
     animation: nowplaying-glitch-out-body 420ms steps(2, end) forwards !important;
     pointer-events: none !important;
@@ -12,7 +12,7 @@ body:has(.closed) #root>div {
     animation: nowplaying-glitch-out 420ms steps(2, end) forwards !important;
 }
 
-/* We leave the main OBS window completely invisible by default */
+/* This leaves the main OBS window fully invisible by default. */
 body,
 html,
 #root {
@@ -22,7 +22,7 @@ html,
     overflow: hidden !important;
 }
 
-/* Glitch-in transition when the AW player becomes active again */
+/* This is the glitch-in transition, shown when the AW player becomes active again. */
 body:not(:has(.closed)) #root>div {
     animation: nowplaying-glitch-in 420ms steps(2, end) 1 !important;
     transform-origin: center !important;
@@ -41,13 +41,13 @@ body:not(:has(.closed)) #root>div {
     width: 100vw !important;
     height: 100vh !important;
 
-    /* THE CENTERING FIX: Forces the inner track info to sit dead center */
+    /* This centering fix forces the inner track info to sit exactly center. */
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
 }
 
-/* Force the internal app shell and backdrop layers fully transparent */
+/* This forces the internal app shell and backdrop layers to be fully transparent. */
 #root .container,
 #root .background,
 #root .background-muted,

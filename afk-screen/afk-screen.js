@@ -1,7 +1,7 @@
-// AFK screen — configures the shared overlay behavior (glitch effect +
-// typewriter broadcast) defined in ../shared/overlay-common.js
+// AFK screen. Configures the shared overlay behavior (glitch effect and
+// typewriter broadcast) defined in ../shared/overlay-common.js.
 //
-// Edit the messages array to change what gets shown while the stream is in
+// Edit the messages array to change what shows while the stream is in
 // AFK mode.
 initOverlay({
     messages: [

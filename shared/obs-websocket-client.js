@@ -1,24 +1,24 @@
-// Minimal obs-websocket v5 client, used to switch which chat layout is
-// active based on the currently-active OBS scene (see chat-overlay.js).
+// This is a minimal obs-websocket v5 client. It switches the active chat
+// layout, based on the currently active OBS scene (see chat-overlay.js).
 //
-// OBS Studio 28+ ships obs-websocket built in (Tools > WebSocket Server
-// Settings) — this connects to it directly (default ws://localhost:4455),
-// so no extra server/process is needed beyond enabling it in OBS. Like
-// shared/twitch-chat.js, this is a hand-rolled WebSocket client (no
-// obs-websocket-js npm package) since this repo has no bundler and pages
-// are opened directly as local files.
+// OBS Studio 28 and later ships obs-websocket built in (Tools > WebSocket Server
+// Settings). This code connects to it directly, at the default ws://localhost:4455,
+// so it needs no extra server or process beyond enabling obs-websocket in OBS. Like
+// shared/twitch-chat.js, this is a hand-rolled WebSocket client, with no
+// obs-websocket-js npm package, because this repo has no bundler and pages
+// open directly as local files.
 //
 // Protocol summary (https://github.com/obsproject/obs-websocket):
-//   1. Server sends "Hello" (op 0) with an auth challenge if a password is set.
-//   2. Client sends "Identify" (op 1), with a computed auth string if needed.
-//   3. Server sends "Identified" (op 2) once accepted.
-//   4. Server sends "Event" (op 5) messages for things like scene changes.
-//   5. Client can send "Request" (op 6) / gets "RequestResponse" (op 7).
+//   1. The server sends "Hello" (op 0), with an auth challenge if a password is set.
+//   2. The client sends "Identify" (op 1), with a computed auth string if needed.
+//   3. The server sends "Identified" (op 2) once it accepts the client.
+//   4. The server sends "Event" (op 5) messages for things such as scene changes.
+//   5. The client can send "Request" (op 6) and gets "RequestResponse" (op 7).
 
-// Pure-JS SHA-256 (no Web Crypto / crypto.subtle dependency). OBS's Browser
-// Source loads local files through a custom scheme that doesn't reliably
-// count as a "secure context", under which crypto.subtle is unavailable —
-// so we can't rely on it here even though this is a local file.
+// This is a pure-JS SHA-256 implementation, with no Web Crypto or crypto.subtle dependency.
+// The OBS Browser Source loads local files through a custom scheme. This does not reliably
+// count as a "secure context", so crypto.subtle is unavailable there.
+// This code cannot rely on crypto.subtle, even though this file is local.
 function sha256(bytes) {
     const K = [
         0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
@@ -83,8 +83,8 @@ function sha256Base64(str) {
 function connectObsWebSocket({
     url = 'ws://localhost:4455',
     password = '',
-    onSceneChanged, // (sceneName) => void — called on connect (current scene) and on every scene change.
-    onStatusChange, // ('connected' | 'disconnected') => void — called once identified, and again if the connection drops.
+    onSceneChanged, // (sceneName) => void. Called on connect, with the current scene, and on every scene change.
+    onStatusChange, // ('connected' | 'disconnected') => void. Called once identified, and again if the connection drops.
 } = {}) {
     let requestCounter = 0;
 
@@ -100,7 +100,7 @@ function connectObsWebSocket({
             }
 
             if (msg.op === 0) {
-                // Hello — reply with Identify, authenticating if required.
+                // Hello. Reply with Identify, and authenticate if required.
                 const authData = msg.d.authentication;
                 const identify = { rpcVersion: msg.d.rpcVersion };
                 if (authData) {
@@ -109,7 +109,7 @@ function connectObsWebSocket({
                 }
                 ws.send(JSON.stringify({ op: 1, d: identify }));
             } else if (msg.op === 2) {
-                // Identified — now ask for the currently active scene.
+                // Identified. Now ask for the currently active scene.
                 onStatusChange && onStatusChange('connected');
                 requestCounter += 1;
                 ws.send(JSON.stringify({

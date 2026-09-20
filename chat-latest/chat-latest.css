@@ -1,9 +1,9 @@
-/* Chat Latest overlay — shows only the single most recent chat message, in
-   the top-right corner of the canvas, and automatically hides it again
-   after a configurable delay (see displayDuration in chat-latest.js). Stays
-   fully transparent (like chat-popup/chat-stack) so it can sit on top of
-   gameplay/webcam in OBS — only the message box itself gets a
-   background/border. */
+/* Chat Latest overlay. Shows only the single most recent chat message, in
+   the top-right corner of the canvas, and hides it again automatically
+   after a configurable delay (see displayDuration in chat-latest.js). It stays
+   fully transparent, like chat-popup and chat-stack, so it can sit on top of
+   gameplay or a webcam in OBS. Only the message box itself gets a
+   background or border. */
 
 html,
 body {
@@ -16,10 +16,10 @@ body {
     font-family: 'Share Tech Mono', monospace;
 }
 
-/* Anchored to the top-right corner of the canvas. Edit top/right/max-width
-   here to reposition or resize it. Unlike chat-popup/chat-stack, this is a
-   single persistent element (chat-latest.js just swaps its content and
-   toggles .is-visible/.is-hiding) rather than one element per message. */
+/* Anchored to the top-right corner of the canvas. Edit top, right, and max-width
+   here to reposition or resize it. Unlike chat-popup and chat-stack, this is a
+   single persistent element. chat-latest.js swaps its content and
+   toggles .is-visible and .is-hiding, instead of using one element per message. */
 #latest-message {
     position: absolute;
     top: 16px;
@@ -42,8 +42,8 @@ body {
     transition: opacity 0.4s ease-in, transform 0.4s ease-in;
 }
 
-/* Scanline overlay scoped to just this box (same trick used by chat-popup's
-   .chat-toast::before / chat-stack's .chat-message::before). */
+/* This scanline overlay is scoped to just this box, the same trick used by chat-popup's
+   .chat-toast::before and chat-stack's .chat-message::before. */
 #latest-message::before {
     content: "";
     position: absolute;
@@ -61,8 +61,8 @@ body {
 }
 
 /* A message that is just a single emote (marked by markSoloEmote in
-   shared/twitch-chat.js) renders that emote extra large, with the username
-   stacked above it and centered — the box reads more like a clean "alert"
+   shared/twitch-chat.js) renders that emote extra large. The username
+   stacks above it, and both are centered, so the box reads more like a clean "alert"
    than a chat line. */
 #latest-message .row.is-emote-only {
     display: flex;
@@ -76,7 +76,7 @@ body {
 }
 
 #latest-message .row.is-emote-only .message {
-    /* The emote is sized 1.4em relative to this font-size → ~90px tall. */
+    /* The emote is sized at 1.4em relative to this font size, so it is about 90px tall. */
     font-size: 64px;
 }
 
@@ -105,9 +105,9 @@ body {
 }
 
 #latest-message .message .emote {
-    /* Fixed width AND height (not "auto") so the image reserves its layout
-       space immediately instead of resizing once it finishes loading — see
-       the equivalent comment in chat-popup.css for the bug this avoids. */
+    /* This uses a fixed width and height, not "auto", so the image reserves its layout
+       space right away, instead of resizing once it finishes loading. See
+       the matching comment in chat-popup.css for the bug this avoids. */
     width: 1.4em;
     height: 1.4em;
     object-fit: contain;
@@ -116,9 +116,9 @@ body {
 }
 
 /* Shown whenever a message is currently on screen. chat-latest.js always
-   removes both this and .is-hiding, forces a reflow, then re-adds this
-   class — so the fade/slide-in transition retriggers even if messages
-   arrive back-to-back before the previous one finished hiding. */
+   removes both this class and .is-hiding, forces a reflow, then re-adds this
+   class. This makes the fade and slide-in transition retrigger, even if messages
+   arrive back-to-back before the previous one finishes hiding. */
 #latest-message.is-visible {
     opacity: 1;
     transform: translateY(0) scale(1);

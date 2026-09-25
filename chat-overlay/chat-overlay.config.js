@@ -28,6 +28,12 @@ initChatOverlay({
         displayDuration: 10000,
     },
 
+    // The poll panel shows in every layout while a Twitch poll runs.
+    // resultDuration is how long the final result stays visible after the poll ends.
+    poll: {
+        resultDuration: 15000,
+    },
+
     // This layout shows before obs-websocket reports a scene, or if
     // scene switching is disabled or unreachable.
     defaultLayout: 'stack',

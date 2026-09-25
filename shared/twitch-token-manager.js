@@ -1,10 +1,11 @@
 // This is the shared Twitch USER access token manager. shared/twitch-eventsub.js uses it.
 //
-// EventSub, for channel point redeems and watch streaks, needs a real user
+// EventSub, for channel point redeems, watch streaks, and polls, needs a real user
 // access token. This is not the anonymous IRC login, and not the app or client-credentials
 // token that twitch-chat.js mints for badges. It needs these scopes:
 //   - channel:read:redemptions  (channel.channel_points_custom_reward_redemption.add)
 //   - user:read:chat            (channel.chat.notification / watch_streak)
+//   - channel:read:polls        (channel.poll.begin / .progress / .end)
 //
 // This repo has no backend server, so the browser itself is the only place to
 // store a refreshed token. Twitch rotates the refresh

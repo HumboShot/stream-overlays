@@ -3,6 +3,7 @@
 // and subscribes to:
 //   - channel.channel_points_custom_reward_redemption.add (needs channel:read:redemptions)
 //   - channel.chat.notification, filtered to notice_type "watch_streak" (needs user:read:chat)
+//   - channel.poll.begin / .progress / .end (needs channel:read:polls)
 //
 // Unlike shared/twitch-chat.js, which uses anonymous IRC with no auth, these events are
 // available only through EventSub, which needs an authenticated
@@ -10,16 +11,17 @@
 // gets and refreshes that token without a backend server.
 //
 // Call connectTwitchEvents({...}) once per page. It calls back into
-// onRedeem(...) and onWatchStreak(...) for each qualifying event.
+// onRedeem(...), onWatchStreak(...), and onPoll(...) for each qualifying event.
 
 function connectTwitchEvents({
     broadcasterUserId,      // Numeric Twitch user ID of the channel to watch (same value as twitchUserId elsewhere).
     twitchClientId,         // Twitch API Client ID (shared/secrets.local.js).
     twitchClientSecret,     // Twitch API Client Secret, used only for refreshing the user token.
-    userAccessToken,        // Seed user access token (shared/secrets.local.js), scopes: channel:read:redemptions, user:read:chat.
+    userAccessToken,        // Seed user access token (shared/secrets.local.js), scopes: channel:read:redemptions, user:read:chat, channel:read:polls.
     userRefreshToken,       // Seed user refresh token (shared/secrets.local.js).
     onRedeem,               // ({ displayName, rewardTitle, userInput, cost }) => void
     onWatchStreak,          // ({ displayName, streakCount }) => void
+    onPoll,                 // ({ phase: 'begin'|'progress'|'end', id, title, choices: [{ id, title, votes }], endsAt, status }) => void
 } = {}) {
     const EVENTSUB_WS_URL = 'wss://eventsub.wss.twitch.tv/ws';
     let ws = null;
@@ -73,6 +75,9 @@ function connectTwitchEvents({
             broadcaster_user_id: broadcasterUserId,
             user_id: broadcasterUserId, // Read chat as the broadcaster, since this code holds their token.
         });
+        for (const phase of ['begin', 'progress', 'end']) {
+            createSubscription(`channel.poll.${phase}`, '1', { broadcaster_user_id: broadcasterUserId });
+        }
     }
 
     function handleRedemption(event) {
@@ -92,6 +97,18 @@ function connectTwitchEvents({
         });
     }
 
+    function handlePoll(phase, event) {
+        onPoll && onPoll({
+            phase,
+            id: event.id,
+            title: event.title,
+            // channel.poll.begin sends choices without vote counts.
+            choices: (event.choices || []).map((c) => ({ id: c.id, title: c.title, votes: c.votes || 0 })),
+            endsAt: event.ends_at ? Date.parse(event.ends_at) : null,
+            status: event.status || null, // Only on "end": completed, terminated, or archived.
+        });
+    }
+
     function handleNotification(payload) {
         const type = payload.subscription && payload.subscription.type;
         const event = payload.event;
@@ -101,6 +118,8 @@ function connectTwitchEvents({
             handleRedemption(event);
         } else if (type === 'channel.chat.notification') {
             handleChatNotification(event);
+        } else if (type && type.startsWith('channel.poll.')) {
+            handlePoll(type.slice('channel.poll.'.length), event);
         }
     }
 

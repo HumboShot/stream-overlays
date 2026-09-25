@@ -22,13 +22,13 @@ The AFK, Ending, and Starting screens each link `../shared/overlay-common.css` a
 
 ## Chat Overlay
 
-`chat-overlay/` is a single OBS Browser Source. It replaces the three separate `chat-stack`, `chat-popup`, and `chat-latest` sources. All three layouts run in the same page. Only one layout shows at a time. Your current OBS scene controls which layout shows, through obs-websocket. The overlay also shows channel point redeems and watch-streak alerts inline, as highlighted "system" rows.
+`chat-overlay/` is a single OBS Browser Source. It replaces the three separate `chat-stack`, `chat-popup`, and `chat-latest` sources. All three layouts run in the same page. Only one layout shows at a time. Your current OBS scene controls which layout shows, through obs-websocket. The overlay also shows channel point redeems and watch-streak alerts inline, as highlighted "system" rows. Twitch polls show in a separate panel in the top-left corner. This panel is visible in every layout while the poll runs, and for a short time after it ends.
 
 ### Setup
 
 1. **Twitch chat** works with no setup. It connects anonymously and read-only, the same as the old overlays. Just set `channel` and `twitchUserId` in `chat-overlay/chat-overlay.config.js`.
-2. **Channel point redeems and watch streaks** need a Twitch user access token. This is separate from the Client ID and Secret used for badges.
-   - Generate a token with the scopes `channel:read:redemptions` and `user:read:chat`. Use a tool such as [twitchtokengenerator.com](https://twitchtokengenerator.com).
+2. **Channel point redeems, watch streaks, and polls** need a Twitch user access token. This is separate from the Client ID and Secret used for badges.
+   - Generate a token with the scopes `channel:read:redemptions`, `user:read:chat`, and `channel:read:polls`. Use a tool such as [twitchtokengenerator.com](https://twitchtokengenerator.com).
    - Copy the access token and refresh token into `TWITCH_USER_ACCESS_TOKEN` and `TWITCH_USER_REFRESH_TOKEN` in `shared/secrets.local.js`.
    - The overlay refreshes and rotates this token automatically at runtime (see the comments in `shared/twitch-token-manager.js`). You should need to do this setup only once, unless the stored token is lost, for example when the browser cache is cleared.
 3. **OBS scene-based layout switching** uses the built-in obs-websocket server in OBS:

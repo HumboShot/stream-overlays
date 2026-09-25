@@ -9,7 +9,8 @@
 // On top of chat (through shared/twitch-chat.js, same as before), this file also
 // connects to Twitch EventSub (shared/twitch-eventsub.js) to show channel
 // point redeems and watch-streak notifications inline. These show as distinct
-// "system" rows (see .row.is-event in chat-overlay.css).
+// "system" rows (see .row.is-event in chat-overlay.css). Twitch polls show
+// in a separate #poll-panel, which is visible in every layout (see initPollPanel()).
 //
 // To change the channel, timings, or scene-name mapping, edit the config passed
 // to initChatOverlay() in chat-overlay.config.js.
@@ -19,13 +20,14 @@ function initChatOverlay({
     twitchUserId,             // Numeric Twitch user ID. Also used as the EventSub broadcaster_user_id.
     twitchClientId,
     twitchClientSecret,
-    twitchUserAccessToken,    // Seed user access token (scopes: channel:read:redemptions, user:read:chat).
+    twitchUserAccessToken,    // Seed user access token (scopes: channel:read:redemptions, user:read:chat, channel:read:polls).
     twitchUserRefreshToken,   // Seed user refresh token.
     hideCommands = true,
 
     stack = {},               // { displayDuration = 0, maxVisible = 25 }
     popup = {},               // { displayDuration = 6000, maxVisible = 12 }
     latest = {},              // { displayDuration = 10000 }
+    poll = {},                // { resultDuration = 15000 }
 
     defaultLayout = 'stack',  // Used until obs-websocket reports the current scene.
     enableSceneSwitching = true,
@@ -41,6 +43,7 @@ function initChatOverlay({
     const stackConfig = { displayDuration: 0, maxVisible: 25, ...stack };
     const popupConfig = { displayDuration: 6000, maxVisible: 12, ...popup };
     const latestConfig = { displayDuration: 10000, ...latest };
+    const pollConfig = { resultDuration: 15000, ...poll };
 
     // -----------------------------------------------------------------
     // LAYOUT VISIBILITY
@@ -72,6 +75,37 @@ function initChatOverlay({
     // -----------------------------------------------------------------
     // ROW MARKUP BUILDERS
     // -----------------------------------------------------------------
+
+    // Pixel-art event icons on the same 10x10 grid as the poll icon in
+    // chat-overlay.html. The shapes use currentColor, so CSS sets the color per event type.
+    const PIXEL_ICONS = {
+        bell: '<svg viewBox="0 0 10 10" shape-rendering="crispEdges" aria-hidden="true">'
+            + '<rect x="4" y="0" width="2" height="1" />'
+            + '<rect x="3" y="1" width="4" height="1" />'
+            + '<rect x="2" y="2" width="6" height="4" />'
+            + '<rect x="1" y="6" width="8" height="1" />'
+            + '<rect x="0" y="7" width="10" height="1" />'
+            + '<rect x="4" y="9" width="2" height="1" />'
+            + '</svg>',
+        flame: '<svg viewBox="0 0 10 10" shape-rendering="crispEdges" aria-hidden="true">'
+            + '<rect x="4" y="0" width="1" height="1" />'
+            + '<rect x="4" y="1" width="2" height="1" />'
+            + '<rect x="3" y="2" width="3" height="1" />'
+            + '<rect x="3" y="3" width="4" height="1" />'
+            + '<rect x="2" y="4" width="5" height="1" />'
+            + '<rect x="2" y="5" width="6" height="1" />'
+            + '<rect x="1" y="6" width="8" height="2" />'
+            + '<rect x="2" y="8" width="6" height="1" />'
+            + '<rect x="3" y="9" width="4" height="1" />'
+            + '<g class="icon-core">'
+            + '<rect x="4" y="5" width="1" height="1" />'
+            + '<rect x="4" y="6" width="2" height="1" />'
+            + '<rect x="3" y="7" width="4" height="1" />'
+            + '<rect x="4" y="8" width="2" height="1" />'
+            + '</g>'
+            + '</svg>',
+    };
+
     function buildChatRowHtml(displayName, color, messageHtml, badgesHtml) {
         return `${badgesHtml}<span class="user" style="color: ${color};">${escapeHtml(displayName)}:</span> <span class="message">${messageHtml}</span>`;
     }
@@ -220,6 +254,102 @@ function initChatOverlay({
         return { spawn, activate };
     }
 
+    // -----------------------------------------------------------------
+    // POLL PANEL
+    // This panel is not a layout. It stays visible in every scene while a
+    // poll runs, and for resultDuration after it ends.
+    // -----------------------------------------------------------------
+    function initPollPanel() {
+        const panel = document.getElementById('poll-panel');
+        const titleEl = panel.querySelector('.poll-title');
+        const choicesEl = panel.querySelector('.poll-choices');
+        const statusEl = panel.querySelector('.poll-status');
+        const totalEl = panel.querySelector('.poll-total');
+        let currentId = null;
+        let endsAt = null;
+        let countdownTimer = null;
+        let hideTimer = null;
+
+        function formatRemaining(ms) {
+            const totalSeconds = Math.max(0, Math.ceil(ms / 1000));
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+            return `${minutes}:${String(seconds).padStart(2, '0')}`;
+        }
+
+        function tickCountdown() {
+            statusEl.textContent = endsAt ? formatRemaining(endsAt - Date.now()) : '';
+        }
+
+        function stopCountdown() {
+            clearInterval(countdownTimer);
+            countdownTimer = null;
+        }
+
+        function hide() {
+            stopCountdown();
+            clearTimeout(hideTimer);
+            panel.classList.remove('is-visible');
+            currentId = null;
+        }
+
+        function render(choices, isEnded) {
+            const total = choices.reduce((sum, c) => sum + c.votes, 0);
+            const topVotes = Math.max(0, ...choices.map((c) => c.votes));
+
+            // Reuse the existing rows while the same poll runs, so the bar width
+            // animates between progress events instead of jumping.
+            if (choicesEl.children.length !== choices.length) {
+                choicesEl.innerHTML = choices.map(() => '<div class="poll-choice">'
+                    + '<div class="poll-bar"></div>'
+                    + '<span class="poll-choice-title"></span>'
+                    + '<span class="poll-choice-percent"></span>'
+                    + '</div>').join('');
+            }
+
+            choices.forEach((c, i) => {
+                const row = choicesEl.children[i];
+                const percent = total > 0 ? Math.round((c.votes / total) * 100) : 0;
+                row.classList.toggle('is-winner', isEnded && topVotes > 0 && c.votes === topVotes);
+                row.querySelector('.poll-bar').style.width = `${percent}%`;
+                row.querySelector('.poll-choice-title').textContent = c.title;
+                row.querySelector('.poll-choice-percent').textContent = `${percent}%`;
+            });
+
+            totalEl.textContent = `${total} vote${total === 1 ? '' : 's'}`;
+        }
+
+        function update({ phase, id, title, choices, endsAt: pollEndsAt, status }) {
+            // "archived" means the broadcaster removed the poll, so there is nothing to show.
+            if (phase === 'end' && status === 'archived') {
+                if (id === currentId) hide();
+                return;
+            }
+
+            clearTimeout(hideTimer);
+            if (id !== currentId) choicesEl.replaceChildren();
+            currentId = id;
+            titleEl.textContent = title;
+            render(choices, phase === 'end');
+            panel.classList.toggle('is-ended', phase === 'end');
+            panel.classList.add('is-visible');
+
+            if (phase === 'end') {
+                stopCountdown();
+                statusEl.textContent = status === 'terminated' ? 'Poll ended early' : 'Poll ended';
+                hideTimer = setTimeout(hide, pollConfig.resultDuration);
+            } else if (endsAt !== pollEndsAt || !countdownTimer) {
+                endsAt = pollEndsAt;
+                stopCountdown();
+                tickCountdown();
+                countdownTimer = setInterval(tickCountdown, 1000);
+            }
+        }
+
+        return { update };
+    }
+
+    const pollPanel = initPollPanel();
     const stackLayout = initStackLayout();
     const popupLayout = initPopupLayout();
     const latestLayout = initLatestLayout();
@@ -270,10 +400,11 @@ function initChatOverlay({
         userAccessToken: twitchUserAccessToken,
         userRefreshToken: twitchUserRefreshToken,
         onRedeem: ({ displayName, rewardTitle }) => {
-            broadcast(buildEventRowHtml('🔔', `${displayName} redeemed ${rewardTitle}`), 'is-event is-event-redeem', false);
+            broadcast(buildEventRowHtml(PIXEL_ICONS.bell, `${displayName} redeemed ${rewardTitle}`), 'is-event is-event-redeem', false);
         },
         onWatchStreak: ({ displayName, streakCount }) => {
-            broadcast(buildEventRowHtml('🔥', `${displayName} is on a ${streakCount}-stream watch streak!`), 'is-event is-event-streak', false);
+            broadcast(buildEventRowHtml(PIXEL_ICONS.flame, `${displayName} is on a ${streakCount}-stream watch streak!`), 'is-event is-event-streak', false);
         },
+        onPoll: pollPanel.update,
     });
 }

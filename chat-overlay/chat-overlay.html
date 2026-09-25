@@ -25,6 +25,25 @@
         <div id="latest-message"></div>
     </div>
 
+    <!-- The poll panel sits outside the layouts, so it shows in every scene.
+         chat-overlay.js fills it from the EventSub channel.poll.* events. -->
+    <div id="poll-panel">
+        <div class="poll-header">
+            <svg class="poll-icon" viewBox="0 0 10 10" shape-rendering="crispEdges" aria-hidden="true">
+                <rect x="0" y="9" width="10" height="1" />
+                <rect x="1" y="5" width="2" height="4" />
+                <rect x="4" y="1" width="2" height="8" />
+                <rect x="7" y="3" width="2" height="6" />
+            </svg>
+            <span class="poll-title"></span>
+        </div>
+        <div class="poll-choices"></div>
+        <div class="poll-footer">
+            <span class="poll-status"></span>
+            <span class="poll-total"></span>
+        </div>
+    </div>
+
     <!-- chat-overlay.js shows this only while the obs-websocket connection is
          down (see shared/obs-websocket-client.js). It lets you notice a bad
          URL or password without opening the browser source's dev console. -->

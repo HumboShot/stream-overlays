@@ -5,9 +5,9 @@
 var TWITCH_CLIENT_ID = 'YOUR_CLIENT_ID';
 var TWITCH_CLIENT_SECRET = 'YOUR_CLIENT_SECRET';
 
-// chat-overlay uses this for Twitch EventSub (channel point redeems and watch
-// streaks). Generate it at https://twitchtokengenerator.com with the scopes
-// `channel:read:redemptions` and `user:read:chat`. See the longer comment in
+// chat-overlay uses this for Twitch EventSub (channel point redeems, watch
+// streaks, and polls). Generate it at https://twitchtokengenerator.com with the scopes
+// `channel:read:redemptions`, `user:read:chat`, and `channel:read:polls`. See the longer comment in
 // secrets.local.js for how this code refreshes and rotates these tokens at runtime.
 var TWITCH_USER_ACCESS_TOKEN = 'YOUR_USER_ACCESS_TOKEN';
 var TWITCH_USER_REFRESH_TOKEN = 'YOUR_USER_REFRESH_TOKEN';

@@ -1,8 +1,8 @@
-// This is shared behavior for the AFK, Ending, and Starting terminal-style overlays:
+// This is shared behavior for the terminal-style stream screens (screen/):
 // a title glitch effect and a typewriter-style rotating broadcast message.
 //
-// Each screen's own script calls initOverlay() with its own messages
-// array and any timing overrides. For example:
+// screen/screen.js calls initOverlay() with the messages array and any
+// timing overrides of the selected mode. For example:
 //
 //   initOverlay({
 //       messages: ["First message", "Second message"],

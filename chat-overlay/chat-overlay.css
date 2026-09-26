@@ -249,7 +249,7 @@ body {
     text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
     box-shadow: 0 0 24px rgba(0, 0, 0, 0.5);
     z-index: 10;
-    /* See chat-popup's original comment. Declare this transform here, not just in
+    /* Declare this transform here, not just in
        the keyframes. Otherwise the transform snaps to `none` once
        the .is-entering animation finishes, since that animation has no fill-mode: forwards. */
     transform: translate(-50%, -50%);

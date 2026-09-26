@@ -1,0 +1,31 @@
+/* Stream screen: status LED for each mode. screen.js sets data-mode on <body>.
+   Shared layout, glitch effect, and typewriter styles live in
+   ../shared/overlay-common.css. */
+
+.status::before {
+    content: "●";
+    margin-right: 10px;
+    color: var(--led-color);
+    text-shadow: 0 0 12px var(--led-glow);
+    animation: blink var(--led-blink) infinite;
+}
+
+body[data-mode="starting"] {
+    --led-color: #33ff44;
+    --led-glow: #ff0000;
+    --led-blink: 1s;
+}
+
+/* This is a calm standby pulse, slower than on the other screens. */
+body[data-mode="afk"] {
+    --led-color: #ffee00;
+    --led-glow: #ffaa00;
+    --led-blink: 1.5s;
+}
+
+/* This is the red warning light for shutdown. It flashes faster. */
+body[data-mode="ending"] {
+    --led-color: #ff3333;
+    --led-glow: #ff0000;
+    --led-blink: 0.8s;
+}

@@ -6,19 +6,28 @@ This repo came from the original `twitch-webpages` monorepo. It keeps the full f
 
 ## Structure
 
-- `afk-screen/` — AFK/BRB screen
-- `ending-screen/` — stream ending screen
-- `starting-screen/` — starting soon screen
+- `screen/` — Starting, AFK, and Ending screens in one page (see below)
 - `chat-overlay/` — combined chat overlay. It has the stack, popup, and latest layouts in one page, plus channel point redeem and watch streak alerts (see below)
-- `chat-stack/`, `chat-popup/`, `chat-latest/` — original standalone single-layout chat overlays. Kept for reference and rollback. The `chat-overlay/` overlay replaces these
 - `shared/` — CSS and JS shared across overlays (Twitch chat and EventSub engines, OBS WebSocket client, token refresh, glitch title effect, typewriter broadcast message, common layout)
-- `footer/` — shared footer. The AFK, Ending, and Starting screens embed it through an `<iframe>`
+- `footer/` — shared footer. The stream screens embed it through an `<iframe>`
 - `panel-template/` — panel template generator for channel panels ([you must run it via a local server; do not open it directly](panel-template/README.md))
 - `clock/current-time.html` — clock component embedded by the footer
 - `tuna-overlay-music.html` — now-playing overlay for the Tuna OBS plugin
 - `nowplaying-site.css` — custom CSS override for the NowPlaying.Site component
 
-The AFK, Ending, and Starting screens each link `../shared/overlay-common.css` and `../shared/overlay-common.js`. They also link their own screen-specific stylesheet and script for the status LED color, messages, and timings. Each screen embeds `../footer/footer.html` through an `<iframe>`, and that footer embeds `../clock/current-time.html`.
+## Stream Screens
+
+`screen/screen.html` shows the Starting, AFK, or Ending screen. The `mode` URL query selects the screen:
+
+- `screen.html?mode=starting` — starting soon screen (also the default)
+- `screen.html?mode=afk` — AFK/BRB screen
+- `screen.html?mode=ending` — stream ending screen
+
+Edit the status text, title, messages, and timings for each mode in `screen/screen.config.js`. The status LED color for each mode is in `screen/screen.css`.
+
+In OBS, add one Browser Source for each mode. Clear the "Local file" checkbox, because a local file source cannot have a query. Then put a `file:///` URL in the URL field, for example `file:///D:/git/stream-overlays/screen/screen.html?mode=afk`.
+
+The page links `../shared/overlay-common.css` and `../shared/overlay-common.js`. It embeds `../footer/footer.html` through an `<iframe>`, and that footer embeds `../clock/current-time.html`.
 
 ## Chat Overlay
 

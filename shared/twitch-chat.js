@@ -1,11 +1,11 @@
 // This is the shared Twitch chat engine. Every chat-based overlay in this repo
-// uses it (chat-popup, chat-stack, and any future overlays). It connects read-only to
+// uses it (chat-overlay and any future overlays). It connects read-only to
 // Twitch chat through a raw WebSocket to the Twitch IRC gateway. It uses an anonymous
 // "justinfan" login, so it needs no OAuth or secrets. It resolves both native Twitch
 // emotes and 7TV, BTTV, and FFZ emotes to inline images. It calls back into
 // the overlay's own onMessage(displayName, color, html, badgesHtml) for each qualifying
 // chat message. Each overlay handles its own visual
-// presentation and lifecycle (see chat-popup.js and chat-stack.js).
+// presentation and lifecycle (see chat-overlay.js).
 //
 // This code uses a plain WebSocket instead of a library such as tmi.js.
 // The tmi.js npm package does not ship a browser-ready bundle. It ships only raw
@@ -300,7 +300,7 @@ function connectTwitchChat({
     // it. This is more reliable than document.fonts.ready, which can resolve
     // immediately if the font has not rendered anything yet.
     // Overlays whose message boxes size themselves to fit their text, for example
-    // chat-popup's randomly-positioned toasts, need the final font metrics
+    // the popup layout's randomly-positioned toasts, need the final font metrics
     // known before the first message is measured and positioned. So this code delivers
     // no message until the font load settles.
     async function waitForFont() {

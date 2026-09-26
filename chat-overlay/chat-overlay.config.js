@@ -14,8 +14,7 @@ initChatOverlay({
     // Drop messages that start with "!" (bot commands) to reduce noise.
     hideCommands: false,
 
-    // Per-layout settings. These use the same options and defaults as the old
-    // chat-stack.config.js, chat-popup.js, and chat-latest.js.
+    // Per-layout settings.
     stack: {
         displayDuration: 0,   // 0 = never auto-disappear; only maxVisible expires messages.
         maxVisible: 25,

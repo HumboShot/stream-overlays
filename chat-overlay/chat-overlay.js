@@ -213,6 +213,7 @@ function initChatOverlay({
     function initLatestLayout() {
         const box = document.getElementById('latest-message');
         let expireTimer = null;
+        let expiresAt = 0;
 
         function spawn(rowHtml, extraClass, isChatRow) {
             clearTimeout(expireTimer);
@@ -228,27 +229,21 @@ function initChatOverlay({
             void box.offsetWidth; // Force a reflow, so the transition retriggers on back-to-back messages.
             box.classList.add('is-visible');
 
+            expiresAt = Date.now() + latestConfig.displayDuration;
             expireTimer = setTimeout(() => {
                 box.classList.remove('is-visible');
             }, latestConfig.displayDuration);
         }
 
-        // Runs whenever this layout becomes the active one. The fade-out
-        // timer above keeps running in real time, even while the layout is hidden. So by
-        // the time a scene switch activates this layout, the last message may have
-        // already faded. This function re-shows the message and restarts the timer, so switching
-        // scenes always shows the most recent message instead of a
-        // stale, blank box.
+        // Runs whenever this layout becomes the active one. The fade-out timer keeps
+        // running in real time while the layout is hidden. If the message is still inside
+        // its display time, replay the fade-in but keep the original expiry. If the time
+        // is over, the box stays empty, so an old message does not come back.
         function activate() {
-            if (!box.hasChildNodes()) return;
-            clearTimeout(expireTimer);
+            if (!box.hasChildNodes() || Date.now() >= expiresAt) return;
             box.classList.remove('is-visible');
             void box.offsetWidth;
             box.classList.add('is-visible');
-
-            expireTimer = setTimeout(() => {
-                box.classList.remove('is-visible');
-            }, latestConfig.displayDuration);
         }
 
         return { spawn, activate };

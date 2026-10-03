@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>PlexAmp Now Playing</title>
+    <link rel="stylesheet" href="../nowplaying-site.css">
+    <link rel="stylesheet" href="plexamp-overlay.css">
+</head>
+
+<body>
+
+    <!-- nowplaying-site.css styles #root > div as the terminal box, and hides the
+         page when #player has the .closed class. -->
+    <div id="root">
+        <div id="player" class="closed">
+            <div id="inner-content">
+                <img id="cover" src="" alt="Album Art" />
+                <div class="info">
+                    <div class="scroll-viewport">
+                        <div id="title"></div>
+                    </div>
+                    <div class="scroll-viewport">
+                        <div id="artist"></div>
+                    </div>
+                    <div id="album"></div>
+                    <div id="progress">
+                        <div id="progress-fill"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../shared/secrets.local.js"></script>
+    <script src="plexamp-overlay.js"></script>
+    <script src="plexamp-overlay.config.js"></script>
+</body>
+
+</html>

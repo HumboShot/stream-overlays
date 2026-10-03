@@ -16,3 +16,8 @@ var TWITCH_USER_REFRESH_TOKEN = 'YOUR_USER_REFRESH_TOKEN';
 // (Tools > WebSocket Server Settings in OBS 28 and later). Leave this as '' if you have
 // disabled authentication in the obs-websocket settings.
 var OBS_WEBSOCKET_PASSWORD = 'YOUR_OBS_WEBSOCKET_PASSWORD';
+
+// plexamp-overlay uses this token only to load the album cover from your Plex
+// Media Server. To find your token, see
+// https://support.plex.tv/articles/204059436-finding-an-authentication-token-x-plex-token/
+var PLEX_TOKEN = 'YOUR_PLEX_TOKEN';

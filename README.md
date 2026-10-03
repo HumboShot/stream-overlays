@@ -12,6 +12,7 @@ This repo came from the original `twitch-webpages` monorepo. It keeps the full f
 - `footer/` — shared footer. The stream screens embed it through an `<iframe>`
 - `panel-template/` — panel template generator for channel panels ([you must run it via a local server; do not open it directly](panel-template/README.md))
 - `clock/current-time.html` — clock component embedded by the footer
+- `plexamp-overlay/` — now-playing overlay for PlexAmp, read from the local PlexAmp app (see below)
 - `tuna-overlay-music.html` — now-playing overlay for the Tuna OBS plugin
 - `nowplaying-site.css` — custom CSS override for the NowPlaying.Site component
 
@@ -46,6 +47,18 @@ The page links `../shared/overlay-common.css` and `../shared/overlay-common.js`.
    - List your exact OBS scene names (case-insensitive) under `sceneLayoutNames` in `chat-overlay/chat-overlay.config.js`. Use one array per layout (`stack`, `popup`, `latest`). If a scene is not listed anywhere, the overlay falls back to `unrecognizedSceneLayout` (default `latest`).
    - If you do not want to use obs-websocket, set `enableSceneSwitching: false` in the config. The overlay then always shows `defaultLayout`.
 4. Add `chat-overlay/chat-overlay.html` as a single OBS Browser Source. This replaces the old three sources.
+
+## PlexAmp Now Playing
+
+`plexamp-overlay/plexamp-overlay.html` shows the track that PlexAmp plays now: cover, title, and artist. It copies the layout of the NowPlaying.Site widget with `nowplaying-site.css`, so the PlexAmp and Spotify overlays look the same. Long text scrolls. To also show the album and a progress bar, set `showAlbum` and `showProgress` in `plexamp-overlay/plexamp-overlay.config.js`. The overlay hides itself when nothing plays.
+
+The overlay polls the local player API of the PlexAmp desktop app on port 32500. This API updates at once when the track changes. The `/status/sessions` API on the Plex Media Server can be up to 15 seconds late, so the overlay does not use it.
+
+### Setup
+
+1. Run the PlexAmp desktop app on the same PC as OBS.
+2. For the album cover, add `PLEX_TOKEN` to `shared/secrets.local.js` (see `shared/secrets.local.example.js`). To find your token, see [Finding an authentication token](https://support.plex.tv/articles/204059436-finding-an-authentication-token-x-plex-token/). Without a token, the overlay shows no cover.
+3. Add `plexamp-overlay/plexamp-overlay.html` as an OBS Browser Source. A size of about 800x230 fits the layout.
 
 ## Tuna Overlay Music
 

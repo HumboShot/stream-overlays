@@ -13,3 +13,6 @@ $RECYCLE.BIN/
 
 # Local-only Twitch API credentials (never commit; see shared/secrets.local.example.js)
 shared/secrets.local.js
+
+# Local Claude Code config
+.claude/

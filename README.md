@@ -1,6 +1,6 @@
 # Stream Overlays
 
-This repo has OBS browser-source overlays for use on stream. It includes the AFK, Ending, and Starting screens, the shared footer, a panel template, and the now-playing and clock components they embed.
+This repo has OBS browser-source overlays for use on stream. It includes the Starting, AFK, and Ending screens, a chat overlay, now-playing overlays, a shared footer with a clock, and a panel template.
 
 This repo came from the original `twitch-webpages` monorepo. It keeps the full file history.
 
@@ -13,8 +13,7 @@ This repo came from the original `twitch-webpages` monorepo. It keeps the full f
 - `panel-template/` — panel template generator for channel panels ([you must run it via a local server; do not open it directly](panel-template/README.md))
 - `clock/current-time.html` — clock component embedded by the footer
 - `plexamp-overlay/` — now-playing overlay for PlexAmp, read from the local PlexAmp app (see below)
-- `tuna-overlay-music.html` — now-playing overlay for the Tuna OBS plugin
-- `nowplaying-site.css` — custom CSS override for the NowPlaying.Site component
+- `now-playing/` — now-playing overlay for the Tuna OBS plugin, and the CSS override for the NowPlaying.Site widget (see below)
 
 ## Stream Screens
 
@@ -32,11 +31,11 @@ The page links `../shared/overlay-common.css` and `../shared/overlay-common.js`.
 
 ## Chat Overlay
 
-`chat-overlay/` is a single OBS Browser Source. It replaces the three separate `chat-stack`, `chat-popup`, and `chat-latest` sources. All three layouts run in the same page. Only one layout shows at a time. Your current OBS scene controls which layout shows, through obs-websocket. The overlay also shows channel point redeems and watch-streak alerts inline, as highlighted "system" rows. Twitch polls show in a separate panel in the top-left corner. This panel is visible in every layout while the poll runs, and for a short time after it ends.
+`chat-overlay/` is a single OBS Browser Source. The stack, popup, and latest layouts run in the same page. Only one layout shows at a time. Your current OBS scene controls which layout shows, through obs-websocket. The overlay also shows channel point redeems and watch-streak alerts inline, as highlighted "system" rows. Twitch polls show in a separate panel in the top-left corner. This panel is visible in every layout while the poll runs, and for a short time after it ends.
 
 ### Setup
 
-1. **Twitch chat** works with no setup. It connects anonymously and read-only, the same as the old overlays. Just set `channel` and `twitchUserId` in `chat-overlay/chat-overlay.config.js`.
+1. **Twitch chat** works with no setup. It connects anonymously and read-only. Just set `channel` and `twitchUserId` in `chat-overlay/chat-overlay.config.js`.
 2. **Channel point redeems, watch streaks, and polls** need a Twitch user access token. This is separate from the Client ID and Secret used for badges.
    - Generate a token with the scopes `channel:read:redemptions`, `user:read:chat`, and `channel:read:polls`. Use a tool such as [twitchtokengenerator.com](https://twitchtokengenerator.com).
    - Copy the access token and refresh token into `TWITCH_USER_ACCESS_TOKEN` and `TWITCH_USER_REFRESH_TOKEN` in `shared/secrets.local.js`.
@@ -46,11 +45,11 @@ The page links `../shared/overlay-common.css` and `../shared/overlay-common.js`.
    - Put the password in `OBS_WEBSOCKET_PASSWORD` in `shared/secrets.local.js`.
    - List your exact OBS scene names (case-insensitive) under `sceneLayoutNames` in `chat-overlay/chat-overlay.config.js`. Use one array per layout (`stack`, `popup`, `latest`). If a scene is not listed anywhere, the overlay falls back to `unrecognizedSceneLayout` (default `latest`).
    - If you do not want to use obs-websocket, set `enableSceneSwitching: false` in the config. The overlay then always shows `defaultLayout`.
-4. Add `chat-overlay/chat-overlay.html` as a single OBS Browser Source. This replaces the old three sources.
+4. Add `chat-overlay/chat-overlay.html` as an OBS Browser Source.
 
 ## PlexAmp Now Playing
 
-`plexamp-overlay/plexamp-overlay.html` shows the track that PlexAmp plays now: cover, title, and artist. It copies the layout of the NowPlaying.Site widget with `nowplaying-site.css`, so the PlexAmp and Spotify overlays look the same. Long text scrolls. To also show the album and a progress bar, set `showAlbum` and `showProgress` in `plexamp-overlay/plexamp-overlay.config.js`. The overlay hides itself when nothing plays.
+`plexamp-overlay/plexamp-overlay.html` shows the track that PlexAmp plays now: cover, title, and artist. It copies the layout of the NowPlaying.Site widget with `now-playing/nowplaying-site.css`, so the PlexAmp and Spotify overlays look the same. Long text scrolls. To also show the album and a progress bar, set `showAlbum` and `showProgress` in `plexamp-overlay/plexamp-overlay.config.js`. The overlay hides itself when nothing plays.
 
 The overlay polls the local player API of the PlexAmp desktop app on port 32500. This API updates at once when the track changes. The `/status/sessions` API on the Plex Media Server can be up to 15 seconds late, so the overlay does not use it.
 
@@ -62,13 +61,19 @@ The overlay polls the local player API of the PlexAmp desktop app on port 32500.
 
 ## Tuna Overlay Music
 
-This setup uses Tuna to show music from a local machine. It works with both Foobar2000 and Plex, but not PlexAmp.
+`now-playing/tuna-overlay-music.html` shows the track that the Tuna OBS plugin reports. It works with Foobar2000 and Plex, but not PlexAmp. For PlexAmp, use `plexamp-overlay/`. The overlay uses the same style as the NowPlaying.Site widget.
 
 ### Setup
 
-Install Tuna and open OBS. In OBS click on the tools menu and Tuna settings.
-Make sure Tuna is running. For Foobar2000 support, install the foo_mediacontrol component.
+1. Install the Tuna plugin for OBS.
+2. For Foobar2000, install the `foo_mediacontrol` component.
+3. In OBS, open Tools > Tuna settings. Enable the web server on port 1608 and start Tuna.
+4. Add `now-playing/tuna-overlay-music.html` as an OBS Browser Source.
 
 ## NowPlaying.Site CSS
 
-To style the NowPlaying.Site component, add the NowPlaying.Site URL from their website. Then, in OBS, override the CSS with the CSS in this repo.
+`now-playing/nowplaying-site.css` restyles the NowPlaying.Site widget to match the other overlays.
+
+1. Get your widget URL from the NowPlaying.Site website.
+2. Add the URL as an OBS Browser Source.
+3. In the source properties, paste the contents of `now-playing/nowplaying-site.css` into the Custom CSS field.

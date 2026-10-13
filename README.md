@@ -14,6 +14,7 @@ This repo came from the original `twitch-webpages` monorepo. It keeps the full f
 - `clock/current-time.html` — clock component embedded by the footer
 - `plexamp-overlay/` — now-playing overlay for PlexAmp, read from the local PlexAmp app (see below)
 - `now-playing/` — now-playing overlay for the Tuna OBS plugin, and the CSS override for the NowPlaying.Site widget (see below)
+- `twitch-callout/` — bar with the Twitch logo and the channel name (see below)
 
 ## Stream Screens
 
@@ -77,3 +78,15 @@ The overlay polls the local player API of the PlexAmp desktop app on port 32500.
 1. Get your widget URL from the NowPlaying.Site website.
 2. Add the URL as an OBS Browser Source.
 3. In the source properties, paste the contents of `now-playing/nowplaying-site.css` into the Custom CSS field.
+
+## Twitch Callout
+
+`twitch-callout/twitch-callout.html` shows a bar with the Twitch logo and the text `HumboShot`. Use it in the gap between the facecam and the gameplay.
+
+Add it as an OBS Browser Source. Set the source width and height to the size of the gap, for example 1080x110. The logo and text scale to the source height.
+
+`twitch-callout/twitch-callout.png` is a 1080x110 image of the bar, for video editing. To export it again at a different size, change `--window-size` and run this command:
+
+```bash
+"/c/Program Files (x86)/Microsoft/Edge/Application/msedge.exe" --headless=new --hide-scrollbars --force-device-scale-factor=1 --virtual-time-budget=5000 --window-size=1080,110 --screenshot="D:\git\stream-overlays\twitch-callout\twitch-callout.png" "file:///D:/git/stream-overlays/twitch-callout/twitch-callout.html"
+```

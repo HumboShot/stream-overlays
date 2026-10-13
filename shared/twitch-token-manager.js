@@ -115,6 +115,10 @@ const TwitchTokenManager = (() => {
         return tokens;
     }
 
+    // The refresh that runs now in this page, if any. Callers on this page
+    // share it, so that parallel requests cause only one refresh.
+    let pendingRefresh = null;
+
     // Returns a valid, non-expired access token. It seeds from
     // secrets.local.js on the first run, and refreshes the token
     // automatically, with cross-page locking, whenever the stored token nears expiry.
@@ -138,6 +142,14 @@ const TwitchTokenManager = (() => {
         const nearExpiry = !tokens.expires_at || Date.now() > tokens.expires_at - REFRESH_MARGIN_MS;
         if (!forceRefresh && !nearExpiry) return tokens.access_token;
 
+        if (!pendingRefresh) {
+            pendingRefresh = refreshWithLock({ clientId, clientSecret, seedAccessToken, seedRefreshToken, forceRefresh }, tokens)
+                .finally(() => { pendingRefresh = null; });
+        }
+        return pendingRefresh;
+    }
+
+    async function refreshWithLock({ clientId, clientSecret, seedAccessToken, seedRefreshToken, forceRefresh }, tokens) {
         if (!acquireLock()) {
             // Another page is already refreshing. Wait for it instead of
             // racing to refresh with the same, soon-to-be-invalid token.

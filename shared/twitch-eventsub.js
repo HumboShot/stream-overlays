@@ -125,6 +125,25 @@ function connectTwitchEvents({
 
     function connect(url = EVENTSUB_WS_URL) {
         const socket = new WebSocket(url);
+        // A session_reconnect URL keeps the existing subscriptions.
+        const isReconnect = url !== EVENTSUB_WS_URL;
+        let keepaliveSeconds = 10;
+        let abandoned = false;
+
+        // Twitch sends a keepalive when no other message was sent for
+        // keepalive_timeout_seconds. If nothing arrives for longer than that, the
+        // connection is dead, even if the socket has not closed. Then start a new one.
+        function resetKeepalive() {
+            clearTimeout(keepaliveTimer);
+            keepaliveTimer = setTimeout(() => {
+                if (ws !== socket) return;
+                console.warn('Twitch EventSub: no keepalive, reconnecting...');
+                abandoned = true;
+                ws = null;
+                socket.close();
+                connect();
+            }, (keepaliveSeconds + 5) * 1000);
+        }
 
         socket.addEventListener('message', (evt) => {
             let payload;
@@ -138,10 +157,11 @@ function connectTwitchEvents({
 
             if (metadata.message_type === 'session_welcome') {
                 sessionId = payload.payload.session.id;
+                keepaliveSeconds = payload.payload.session.keepalive_timeout_seconds || keepaliveSeconds;
                 ws = socket;
-                subscribeAll();
+                if (!isReconnect) subscribeAll();
             } else if (metadata.message_type === 'session_keepalive') {
-                // Does nothing. This message only confirms the connection is alive.
+                // Does nothing here. resetKeepalive() below handles it.
             } else if (metadata.message_type === 'notification') {
                 handleNotification(payload.payload);
             } else if (metadata.message_type === 'session_reconnect') {
@@ -150,11 +170,16 @@ function connectTwitchEvents({
             } else if (metadata.message_type === 'revocation') {
                 console.warn('Twitch EventSub: subscription revoked', payload.payload);
             }
+
+            if (ws === socket) resetKeepalive();
         });
 
         socket.addEventListener('close', () => {
-            if (ws === socket) {
+            if (abandoned) return;
+            // Also reconnect if the first connection closes before its welcome message.
+            if (ws === socket || (ws === null && !isReconnect)) {
                 ws = null;
+                clearTimeout(keepaliveTimer);
                 console.warn('Twitch EventSub: disconnected, reconnecting in 3s...');
                 setTimeout(() => connect(), 3000);
             }

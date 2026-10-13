@@ -135,6 +135,8 @@ function initPlexampOverlay({
             console.warn('PlexAmp overlay: poll failed. Is PlexAmp running?', error);
             hide();
         }
+        // Wait after each answer, so a slow answer cannot start a second request.
+        setTimeout(poll, pollInterval);
     }
 
     function drawProgress() {
@@ -147,7 +149,6 @@ function initPlexampOverlay({
     }
 
     poll();
-    setInterval(poll, pollInterval);
     if (showProgress) {
         requestAnimationFrame(drawProgress);
     }

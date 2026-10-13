@@ -65,43 +65,50 @@
     </div>
 
     <script>
+        const player = document.getElementById("player");
+        const titleEl = document.getElementById("title");
+        const artistEl = document.getElementById("artist");
+        const coverEl = document.getElementById("cover");
+
         // Store the current song title, to track when to change the cover.
         let currentTitle = "";
 
-        // This function asks Tuna for the current song every second.
+        // This function asks Tuna for the current song. It waits one second
+        // after each answer, so a slow answer cannot start a second request.
         function updateTuna() {
             fetch("http://localhost:1608/")
                 .then(response => response.json())
                 .then(data => {
-                    const player = document.getElementById("player");
-
                     if (!data || !data.title || data.status.toLowerCase() !== "playing") {
                         player.classList.add("closed");
-                    } else {
-                        player.classList.remove("closed");
+                        return;
+                    }
 
-                        document.getElementById("title").innerText = data.title;
-                        document.getElementById("artist").innerText = data.artists ? data.artists.join(", ") : "Unknown Artist";
+                    player.classList.remove("closed");
 
-                        // Check if the song has changed.
-                        if (currentTitle !== data.title) {
-                            currentTitle = data.title;
+                    // Change the text only when it changes, to prevent a layout pass every second.
+                    const artist = data.artists ? data.artists.join(", ") : "Unknown Artist";
+                    if (titleEl.textContent !== data.title) titleEl.textContent = data.title;
+                    if (artistEl.textContent !== artist) artistEl.textContent = artist;
 
-                            // Use the exact URL that Tuna provides, plus a cache-buster to force OBS to update it.
-                            if (data.cover_url) {
-                                document.getElementById("cover").src = data.cover_url + "?_=" + Date.now();
-                            } else {
-                                document.getElementById("cover").src = ""; // Leave this blank if there is no album art.
-                            }
-                        }
+                    // Check if the song has changed.
+                    if (currentTitle !== data.title) {
+                        currentTitle = data.title;
+
+                        // Use the exact URL that Tuna provides, plus a cache-buster to force OBS to update it.
+                        // Leave this blank if there is no album art.
+                        coverEl.src = data.cover_url ? data.cover_url + "?_=" + Date.now() : "";
                     }
                 })
-                .catch(error => {
-                    document.getElementById("player").classList.add("closed");
+                .catch(() => {
+                    player.classList.add("closed");
+                })
+                .finally(() => {
+                    setTimeout(updateTuna, 1000);
                 });
         }
 
-        setInterval(updateTuna, 1000);
+        updateTuna();
     </script>
 </body>
 

@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>System Time Panel</title>
-    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../shared/share-tech-mono.css">
     <style>
         html,
         body {
@@ -124,21 +124,12 @@
 
             timeEl.textContent = `${hh}:${mm}:${ss}`;
             gmtEl.textContent = formatGmtOffset(now);
-        }
 
-        let lastFrameTime = 0;
-        const frameInterval = 1000 / 1; // 1 FPS
-
-        function tick(timestamp) {
-            if (timestamp - lastFrameTime >= frameInterval) {
-                lastFrameTime = timestamp;
-                updateClock();
-            }
-            requestAnimationFrame(tick);
+            // Wake up just after the next full second, so the seconds tick on time.
+            setTimeout(updateClock, 1000 - now.getMilliseconds() + 5);
         }
 
         updateClock();
-        requestAnimationFrame(tick);
     </script>
 </body>
 

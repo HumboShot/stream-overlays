@@ -63,9 +63,20 @@ function connectTwitchChat({
     // ---------------------------------------------------------------------
     const thirdPartyEmotes = new Map();
 
-    async function fetchJson(url) {
+    // Chat connects only after the startup requests below settle. This timeout
+    // stops one slow or hanging API from holding back chat.
+    const STARTUP_FETCH_TIMEOUT_MS = 5000;
+
+    // AbortSignal.timeout() needs Chromium 103, which older OBS builds do not have.
+    function startupTimeoutSignal() {
+        const controller = new AbortController();
+        setTimeout(() => controller.abort(), STARTUP_FETCH_TIMEOUT_MS);
+        return controller.signal;
+    }
+
+    async function fetchJson(url, options = {}) {
         try {
-            const res = await fetch(url);
+            const res = await fetch(url, { ...options, signal: startupTimeoutSignal() });
             if (!res.ok) return null;
             return await res.json();
         } catch (err) {
@@ -147,6 +158,7 @@ function connectTwitchChat({
                     client_secret: twitchClientSecret,
                     grant_type: 'client_credentials',
                 }),
+                signal: startupTimeoutSignal(),
             });
             if (!res.ok) {
                 console.warn('Twitch Chat: failed to obtain app access token (HTTP', res.status, ')', await res.text().catch(() => ''));
@@ -160,21 +172,18 @@ function connectTwitchChat({
         }
     }
 
-    async function fetchBadgeSet(url, headers) {
-        try {
-            const res = await fetch(url, { headers });
-            if (!res.ok) return;
-            const json = await res.json();
-            for (const badge of (json.data || [])) {
-                // Use the highest available version for each badge set.
-                const versions = (badge.versions || []).slice().sort((a, b) => Number(b.id) - Number(a.id));
-                if (versions.length > 0) {
-                    const imgUrl = versions[0].image_url_2x || versions[0].image_url_1x;
-                    if (imgUrl) twitchBadges.set(badge.set_id, imgUrl);
-                }
+    // Stores each badge version under "set_id/version", for example the
+    // subscriber badge for each month tier. It also stores the highest version
+    // under the bare set_id, as a fallback for versions that are not listed.
+    function addBadgeSet(json) {
+        for (const badge of ((json && json.data) || [])) {
+            const versions = (badge.versions || []).slice().sort((a, b) => Number(b.id) - Number(a.id));
+            for (const version of versions) {
+                const imgUrl = version.image_url_2x || version.image_url_1x;
+                if (imgUrl) twitchBadges.set(`${badge.set_id}/${version.id}`, imgUrl);
             }
-        } catch (err) {
-            console.warn('Twitch Chat: failed to load badges from', url, err);
+            const topUrl = versions.length > 0 && (versions[0].image_url_2x || versions[0].image_url_1x);
+            if (topUrl) twitchBadges.set(badge.set_id, topUrl);
         }
     }
 
@@ -187,17 +196,16 @@ function connectTwitchChat({
             'Client-Id': twitchClientId,
         };
 
-        // Global badges.
-        await fetchBadgeSet('https://api.twitch.tv/helix/chat/badges/global', headers);
+        // Fetch the global badges and the channel-specific badges for this broadcaster,
+        // for example custom subscriber tiers, at the same time.
+        const [globalSet, channelSet] = await Promise.all([
+            fetchJson('https://api.twitch.tv/helix/chat/badges/global', { headers }),
+            twitchUserId ? fetchJson(`https://api.twitch.tv/helix/chat/badges?broadcaster_id=${twitchUserId}`, { headers }) : null,
+        ]);
 
-        // Channel-specific badges for this broadcaster, for example custom subscriber tiers.
-        // This code writes these after the global set, so channel custom badges override global ones.
-        if (twitchUserId) {
-            await fetchBadgeSet(
-                `https://api.twitch.tv/helix/chat/badges?broadcaster_id=${twitchUserId}`,
-                headers
-            );
-        }
+        // Add the channel set after the global set, so channel custom badges override global ones.
+        addBadgeSet(globalSet);
+        addBadgeSet(channelSet);
     }
 
     // Renders the badge HTML for a message. The tags.badges string from Twitch
@@ -213,8 +221,8 @@ function connectTwitchChat({
             const slashIdx = part.indexOf('/');
             const set_id = slashIdx === -1 ? part : part.slice(0, slashIdx);
             const version = slashIdx === -1 ? '' : part.slice(slashIdx + 1);
-            // Check for a channel-specific badge first, using set_id with version.
-            // If none exists, fall back to just the set_id, for the global badge.
+            // Look up the exact version first. If that version is not listed,
+            // fall back to the highest version of the set.
             const url = twitchBadges.get(`${set_id}/${version}`) || twitchBadges.get(set_id);
             if (url) {
                 imgs.push(`<img class="badge" src="${url}" alt="${escapeHtml(set_id)}" title="${escapeHtml(set_id)}">`);

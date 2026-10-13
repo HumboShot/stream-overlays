@@ -123,15 +123,28 @@ function initChatOverlay({
         const activeMessages = [];
 
         function removeMessage(message) {
-            if (!message || !message.isConnected || message.classList.contains('is-leaving')) return;
+            if (!message || !message.isConnected) return;
             clearTimeout(message._expireTimer);
-            message.classList.remove('is-entering');
-            message.classList.add('is-leaving');
-            message.addEventListener('animationend', () => {
+
+            function finishRemove() {
                 message.remove();
                 const idx = activeMessages.indexOf(message);
                 if (idx !== -1) activeMessages.splice(idx, 1);
-            }, { once: true });
+            }
+
+            // A hidden layout (display: none) runs no CSS animations, so
+            // animationend never fires there. Remove the message at once instead.
+            // This also clears a message whose leave animation stopped when its
+            // layout was hidden.
+            if (!layoutEls.stack.classList.contains('is-active')) {
+                finishRemove();
+                return;
+            }
+
+            if (message.classList.contains('is-leaving')) return;
+            message.classList.remove('is-entering');
+            message.classList.add('is-leaving');
+            message.addEventListener('animationend', finishRemove, { once: true });
         }
 
         function spawn(rowHtml, extraClass, isChatRow) {
@@ -147,8 +160,11 @@ function initChatOverlay({
             feed.prepend(message);
             activeMessages.unshift(message);
 
-            if (activeMessages.length > stackConfig.maxVisible) {
-                removeMessage(activeMessages[activeMessages.length - 1]);
+            // Skip messages that are already leaving, so a burst of messages
+            // does not keep the feed above maxVisible.
+            const staying = activeMessages.filter((m) => !m.classList.contains('is-leaving'));
+            if (staying.length > stackConfig.maxVisible) {
+                removeMessage(staying[staying.length - 1]);
             }
 
             if (stackConfig.displayDuration > 0) {
@@ -171,15 +187,25 @@ function initChatOverlay({
         }
 
         function removeToast(toast) {
-            if (!toast || !toast.isConnected || toast.classList.contains('is-leaving')) return;
+            if (!toast || !toast.isConnected) return;
             clearTimeout(toast._expireTimer);
-            toast.classList.remove('is-entering');
-            toast.classList.add('is-leaving');
-            toast.addEventListener('animationend', () => {
+
+            function finishRemove() {
                 toast.remove();
                 const idx = activeToasts.indexOf(toast);
                 if (idx !== -1) activeToasts.splice(idx, 1);
-            }, { once: true });
+            }
+
+            // See removeMessage() in initStackLayout().
+            if (!layoutEls.popup.classList.contains('is-active')) {
+                finishRemove();
+                return;
+            }
+
+            if (toast.classList.contains('is-leaving')) return;
+            toast.classList.remove('is-entering');
+            toast.classList.add('is-leaving');
+            toast.addEventListener('animationend', finishRemove, { once: true });
         }
 
         function spawn(rowHtml, extraClass, isChatRow) {
@@ -197,8 +223,9 @@ function initChatOverlay({
             layer.appendChild(toast);
             activeToasts.push(toast);
 
-            if (activeToasts.length > popupConfig.maxVisible) {
-                removeToast(activeToasts[0]);
+            const staying = activeToasts.filter((t) => !t.classList.contains('is-leaving'));
+            if (staying.length > popupConfig.maxVisible) {
+                removeToast(staying[0]);
             }
 
             toast._expireTimer = setTimeout(() => removeToast(toast), popupConfig.displayDuration);

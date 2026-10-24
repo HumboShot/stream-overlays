@@ -44,12 +44,23 @@
         </div>
     </div>
 
-    <!-- chat-overlay.js shows this only while the obs-websocket connection is
-         down (see shared/obs-websocket-client.js). It lets you notice a bad
-         URL or password without opening the browser source's dev console. -->
-    <div id="obs-status">
-        <span class="obs-status-icon">⚠</span>
-        <span class="obs-status-text">OBS disconnected</span>
+    <!-- chat-overlay.js shows each badge only while its connection is down:
+         obs-websocket, Twitch chat (IRC), and Twitch EventSub (redeems,
+         watch streaks, polls). It lets you notice a bad URL, password, or token
+         without opening the browser source's dev console. -->
+    <div id="connection-status">
+        <div class="connection-badge" data-connection="obs">
+            <span class="connection-badge-icon">⚠</span>
+            <span class="connection-badge-text">OBS disconnected</span>
+        </div>
+        <div class="connection-badge" data-connection="chat">
+            <span class="connection-badge-icon">⚠</span>
+            <span class="connection-badge-text">Chat disconnected</span>
+        </div>
+        <div class="connection-badge" data-connection="alerts">
+            <span class="connection-badge-icon">⚠</span>
+            <span class="connection-badge-text">Alerts disconnected</span>
+        </div>
     </div>
 
     <script src="../shared/twitch-chat.js"></script>

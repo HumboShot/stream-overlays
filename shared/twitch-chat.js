@@ -51,6 +51,7 @@ function connectTwitchChat({
                              // access token, through the client-credentials flow, to list global and
                              // channel-specific badge image URLs from Helix. Treat this secret as private.
     onMessage,              // (displayName, color, html, badgesHtml) => void. Called for each qualifying message.
+    onStatusChange,         // ('connected' | 'disconnected') => void. Called once the channel is joined, and again if the connection drops.
 } = {}) {
     // ---------------------------------------------------------------------
     // THIRD-PARTY EMOTES (7TV / BTTV / FFZ)
@@ -386,6 +387,12 @@ function connectTwitchChat({
             return;
         }
 
+        // Twitch sends ROOMSTATE once the JOIN succeeds.
+        if (command === 'ROOMSTATE') {
+            onStatusChange && onStatusChange('connected');
+            return;
+        }
+
         if (command === 'PRIVMSG') {
             const username = prefix.split('!')[0] || 'anonymous';
             const message = stripActionWrapper(params[1] || '');
@@ -422,6 +429,7 @@ function connectTwitchChat({
 
         ws.addEventListener('close', () => {
             console.warn('Twitch Chat: disconnected from Twitch chat, reconnecting in 3s...');
+            onStatusChange && onStatusChange('disconnected');
             setTimeout(connectToChat, 3000);
         });
 

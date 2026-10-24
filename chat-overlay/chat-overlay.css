@@ -498,17 +498,26 @@ body {
 }
 
 /* =======================================================================
-   OBS CONNECTION STATUS. This is a small badge shown only while the obs-websocket
-   connection is down (see chat-overlay.js and shared/obs-websocket-client.js).
-   It uses the same box treatment as the layouts above, with a red accent, so it reads
-   as a warning rather than a chat or event row.
+   CONNECTION STATUS. These are small badges shown only while a connection is
+   down: obs-websocket, Twitch chat, or Twitch EventSub (see chat-overlay.js).
+   They use the same box treatment as the layouts above, with a red accent, so they read
+   as warnings rather than chat or event rows.
    ======================================================================= */
-#obs-status {
+#connection-status {
     position: absolute;
     right: 16px;
     bottom: 16px;
     z-index: 20;
     display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+    pointer-events: none;
+}
+
+.connection-badge {
+    position: relative;
+    display: none;
     align-items: center;
     gap: 8px;
     padding: 8px 14px;
@@ -520,18 +529,16 @@ body {
     line-height: 1.4;
     text-shadow: 0 0 10px rgba(255, 65, 54, 0.6);
     box-shadow: 0 0 18px rgba(255, 65, 54, 0.4);
-    pointer-events: none;
-    opacity: 0;
-    transform: translateY(8px);
-    transition: opacity 0.3s ease-out, transform 0.3s ease-out;
 }
 
-#obs-status.is-visible {
-    opacity: 1;
-    transform: translateY(0);
+/* display: none keeps hidden badges from taking space in the stack, so a
+   keyframe fade-in replaces the old opacity transition. */
+.connection-badge.is-visible {
+    display: flex;
+    animation: connection-badge-in 0.3s ease-out;
 }
 
-#obs-status::before {
+.connection-badge::before {
     content: "";
     position: absolute;
     inset: 0;
@@ -542,22 +549,29 @@ body {
     z-index: 1;
 }
 
-#obs-status .obs-status-icon,
-#obs-status .obs-status-text {
+.connection-badge .connection-badge-icon,
+.connection-badge .connection-badge-text {
     position: relative;
     z-index: 2;
 }
 
-#obs-status .obs-status-icon {
+.connection-badge .connection-badge-icon {
     font-size: 1.2em;
-    animation: obs-status-pulse 1.4s ease-in-out infinite;
+    animation: connection-badge-pulse 1.4s ease-in-out infinite;
 }
 
-#obs-status .obs-status-text {
+.connection-badge .connection-badge-text {
     font-weight: bold;
 }
 
-@keyframes obs-status-pulse {
+@keyframes connection-badge-in {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+}
+
+@keyframes connection-badge-pulse {
 
     0%,
     100% {

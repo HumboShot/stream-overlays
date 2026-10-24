@@ -22,6 +22,7 @@ function connectTwitchEvents({
     onRedeem,               // ({ displayName, rewardTitle, userInput, cost }) => void
     onWatchStreak,          // ({ displayName, streakCount }) => void
     onPoll,                 // ({ phase: 'begin'|'progress'|'end', id, title, choices: [{ id, title, votes }], endsAt, status }) => void
+    onStatusChange,         // ('connected' | 'disconnected') => void. Called once all subscriptions succeed, and again if the connection drops or a subscription fails.
 } = {}) {
     const EVENTSUB_WS_URL = 'wss://eventsub.wss.twitch.tv/ws';
     let ws = null;
@@ -63,21 +64,29 @@ function connectTwitchEvents({
         if (!res.ok) {
             const body = await res.text().catch(() => '');
             console.error(`Twitch EventSub: failed to subscribe to ${type} (${res.status})`, body);
-            return;
+            return false;
         }
+        return true;
     }
 
-    function subscribeAll() {
-        createSubscription('channel.channel_points_custom_reward_redemption.add', '1', {
-            broadcaster_user_id: broadcasterUserId,
-        });
-        createSubscription('channel.chat.notification', '1', {
-            broadcaster_user_id: broadcasterUserId,
-            user_id: broadcasterUserId, // Read chat as the broadcaster, since this code holds their token.
-        });
-        for (const phase of ['begin', 'progress', 'end']) {
-            createSubscription(`channel.poll.${phase}`, '1', { broadcaster_user_id: broadcasterUserId });
-        }
+    // The socket can be open while the subscriptions fail (for example, a bad
+    // token). Then no alerts arrive, so report that as disconnected too.
+    async function subscribeAll() {
+        const results = await Promise.all([
+            createSubscription('channel.channel_points_custom_reward_redemption.add', '1', {
+                broadcaster_user_id: broadcasterUserId,
+            }),
+            createSubscription('channel.chat.notification', '1', {
+                broadcaster_user_id: broadcasterUserId,
+                user_id: broadcasterUserId, // Read chat as the broadcaster, since this code holds their token.
+            }),
+            ...['begin', 'progress', 'end'].map((phase) =>
+                createSubscription(`channel.poll.${phase}`, '1', { broadcaster_user_id: broadcasterUserId })),
+        ].map((p) => p.catch((err) => {
+            console.error('Twitch EventSub: subscription error', err);
+            return false;
+        })));
+        onStatusChange && onStatusChange(results.every(Boolean) ? 'connected' : 'disconnected');
     }
 
     function handleRedemption(event) {
@@ -138,6 +147,7 @@ function connectTwitchEvents({
             keepaliveTimer = setTimeout(() => {
                 if (ws !== socket) return;
                 console.warn('Twitch EventSub: no keepalive, reconnecting...');
+                onStatusChange && onStatusChange('disconnected');
                 abandoned = true;
                 ws = null;
                 socket.close();
@@ -181,6 +191,7 @@ function connectTwitchEvents({
                 ws = null;
                 clearTimeout(keepaliveTimer);
                 console.warn('Twitch EventSub: disconnected, reconnecting in 3s...');
+                onStatusChange && onStatusChange('disconnected');
                 setTimeout(() => connect(), 3000);
             }
         });

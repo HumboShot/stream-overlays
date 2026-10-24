@@ -63,13 +63,13 @@ function initChatOverlay({
 
     setActiveLayout(defaultLayout);
 
-    // Small badge shown only while the obs-websocket connection is down. Scene-based
-    // layout switching may be stale or stuck until the connection reconnects.
-    const obsStatusEl = document.getElementById('obs-status');
-
-    function setObsStatus(status) {
-        if (!obsStatusEl) return;
-        obsStatusEl.classList.toggle('is-visible', status === 'disconnected');
+    // Small badges shown only while a connection is down. While "obs" is down,
+    // scene-based layout switching may be stale. While "chat" or "alerts" is down,
+    // messages or events are missed until the connection reconnects.
+    function setConnectionStatus(name, status) {
+        const badge = document.querySelector(`.connection-badge[data-connection="${name}"]`);
+        if (!badge) return;
+        badge.classList.toggle('is-visible', status === 'disconnected');
     }
 
     // -----------------------------------------------------------------
@@ -394,7 +394,7 @@ function initChatOverlay({
                 setActiveLayout(layoutName);
                 if (layoutName === 'latest') latestLayout.activate();
             },
-            onStatusChange: setObsStatus,
+            onStatusChange: (status) => setConnectionStatus('obs', status),
         });
     }
 
@@ -410,6 +410,7 @@ function initChatOverlay({
         onMessage: (displayName, color, html, badgesHtml) => {
             broadcast(buildChatRowHtml(displayName, color, html, badgesHtml), '', true);
         },
+        onStatusChange: (status) => setConnectionStatus('chat', status),
     });
 
     // -----------------------------------------------------------------
@@ -428,5 +429,6 @@ function initChatOverlay({
             broadcast(buildEventRowHtml(PIXEL_ICONS.flame, `${displayName} is on a ${streakCount}-stream watch streak!`), 'is-event is-event-streak', false);
         },
         onPoll: pollPanel.update,
+        onStatusChange: (status) => setConnectionStatus('alerts', status),
     });
 }

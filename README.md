@@ -90,3 +90,7 @@ Add it as an OBS Browser Source. Set the source width and height to the size of 
 ```bash
 "/c/Program Files (x86)/Microsoft/Edge/Application/msedge.exe" --headless=new --hide-scrollbars --force-device-scale-factor=1 --virtual-time-budget=5000 --window-size=1080,110 --screenshot="D:\git\stream-overlays\twitch-callout\twitch-callout.png" "file:///D:/git/stream-overlays/twitch-callout/twitch-callout.html"
 ```
+
+## License
+
+This project uses the MIT License. See [LICENSE](LICENSE).

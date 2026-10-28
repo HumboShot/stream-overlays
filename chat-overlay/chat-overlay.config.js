@@ -16,7 +16,7 @@ initChatOverlay({
 
     // Per-layout settings.
     stack: {
-        displayDuration: 1200000,   // 0 = never auto-disappear; only maxVisible expires messages.
+        displayDuration: 0,   // 0 = never auto-disappear; only maxVisible expires messages.
         maxVisible: 25,
     },
     popup: {

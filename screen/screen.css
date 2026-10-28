@@ -29,3 +29,122 @@ body[data-mode="ending"] {
     --led-glow: #ff0000;
     --led-blink: 0.8s;
 }
+
+/* --- SUN AND NIGHT CYCLE ---
+   The sky sits behind all other content. The sun and the moon sit on opposite
+   ends of one rotating orbit, so one turn is one full day. screen.js turns
+   the orbit and sets the opacity of the sky layers and the stars, from the
+   real sun position at the location in screen.config.js. */
+
+.header {
+    position: relative;
+    z-index: 1;
+}
+
+.sky {
+    --sky-horizon: 1150px;
+    --sky-radius: 880px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: var(--sky-horizon);
+    overflow: hidden;
+    border-bottom: 2px solid rgba(255, 0, 255, 0.5);
+    box-shadow: 0 2px 24px rgba(255, 0, 255, 0.35);
+}
+
+.sky-layer {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+}
+
+.sky-day {
+    background: linear-gradient(#06233d, #11426a 70%, #1d5a85);
+}
+
+.sky-twilight {
+    background: linear-gradient(transparent 35%, rgba(120, 20, 110, 0.55) 70%, rgba(255, 110, 60, 0.6));
+}
+
+.sky-stars {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+}
+
+.sky-star {
+    position: absolute;
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: #e6fbff;
+    box-shadow: 0 0 6px #9ff;
+    animation: blink 3s infinite;
+}
+
+.sky-orbit {
+    position: absolute;
+    left: 50%;
+    top: var(--sky-horizon);
+    width: 0;
+    height: 0;
+}
+
+/* The sun and the moon are zero-size anchors on the orbit. Their ASCII art is
+   centered on the anchor, and the counter-rotation keeps the art upright. */
+.sky-sun,
+.sky-moon {
+    position: absolute;
+    left: 0;
+}
+
+.sky-sun {
+    top: calc(-1 * var(--sky-radius));
+}
+
+.sky-moon {
+    top: var(--sky-radius);
+}
+
+.sky-sun pre,
+.sky-moon pre {
+    position: absolute;
+    margin: 0;
+    font-family: inherit;
+    font-size: 30px;
+    line-height: 1.1;
+    font-weight: bold;
+    width: 16ch;
+    transform: translate(-50%, -50%);
+}
+
+/* The gradient fills the characters, from yellow at the top to magenta at the bottom. */
+.sky-sun pre {
+    background: linear-gradient(#ffe45c, #ff8a3d 45%, #ff2bd6);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    filter: drop-shadow(0 0 8px rgba(255, 120, 80, 0.8)) drop-shadow(0 0 24px rgba(255, 43, 214, 0.5));
+}
+
+.sky-moon pre {
+    color: #dff8ff;
+    text-shadow: 0 0 10px rgba(0, 255, 255, 0.8), 0 0 24px rgba(0, 255, 255, 0.4);
+}
+
+/* The moon art shows the lit side on the left. screen.js mirrors it when the right side is lit. */
+.sky-moon.is-mirrored pre {
+    transform: translate(-50%, -50%) scaleX(-1);
+}
+
+.sky-moon pre[data-phase="new"] {
+    opacity: 0.3;
+}
+
+/* The shared glitch clones have a solid background. Over the sky it shows as a dark box. */
+.starting-text.is-glitching::before,
+.starting-text.is-glitching::after {
+    background-color: transparent;
+}

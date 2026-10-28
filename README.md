@@ -49,6 +49,8 @@ Some folders hold parts that the overlays use:
 
 Edit the status text, title, messages, and timings for each mode in `screen/screen.config.js`. The status LED color for each mode is in `screen/screen.css`.
 
+The background shows a sun and night cycle that follows the real sun and moon phase. Set your location with `SKY_LATITUDE` and `SKY_LONGITUDE` in `screen/screen.config.js`. To test the cycle, set `SKY_CYCLE_SECONDS` to play one full day in that number of seconds.
+
 ### Setup
 
 1. In OBS, add one Browser Source for each mode.

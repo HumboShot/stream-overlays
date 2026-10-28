@@ -48,3 +48,15 @@ const SCREEN_MODES = {
 
 // Used when the URL has no mode, or an unknown mode.
 const DEFAULT_SCREEN_MODE = 'starting';
+
+// The sun and night cycle in the background follows the real sun at this
+// location. It uses the clock of the PC that runs OBS.
+const SKY_LATITUDE = 57.048663659757054;   // Degrees. North is positive, south is negative.
+const SKY_LONGITUDE = 9.925509449727342;   // Degrees. East is positive, west is negative.
+
+// 0 = follow the real time. Set a number of seconds to play one full day in
+// that time instead, for example 120 to test the cycle.
+const SKY_CYCLE_SECONDS = 0;
+
+// Number of stars that show in the night sky.
+const SKY_STAR_COUNT = 120;

@@ -3,7 +3,7 @@
 // behavior from ../shared/overlay-common.js.
 const requestedMode = new URLSearchParams(location.search).get('mode');
 const modeName = requestedMode in SCREEN_MODES ? requestedMode : DEFAULT_SCREEN_MODE;
-const { pageTitle, status, title, ...overlayOptions } = SCREEN_MODES[modeName];
+const { pageTitle, status, title, clockText, ...overlayOptions } = SCREEN_MODES[modeName];
 
 document.body.dataset.mode = modeName;
 document.title = pageTitle;
@@ -12,6 +12,11 @@ document.querySelector('.status').textContent = status;
 const titleElement = document.querySelector('.starting-text');
 titleElement.textContent = title;
 titleElement.dataset.text = title;
+
+// OBS loads these pages as local files, so the pages cannot read the DOM of
+// their iframes. The clock text goes through the iframe URLs instead.
+const footerQuery = clockText ? `?clockText=${encodeURIComponent(clockText)}` : '';
+document.querySelector('.footer-frame').src = `../footer/footer.html${footerQuery}`;
 
 // --- SUN AND NIGHT CYCLE ---
 // The sun moves along the orbit from the real sunrise to the real sunset, and

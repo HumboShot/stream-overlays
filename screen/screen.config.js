@@ -44,6 +44,16 @@ const SCREEN_MODES = {
             "Off platform channels are up and running, check out the !dojo for more information",
         ],
     },
+    offline: {
+        pageTitle: 'Offline Terminal',
+        status: 'SYSTEM_OFFLINE // NO_SIGNAL...',
+        title: 'STREAM_OFFLINE',
+        clockText: 'XX:XX:XX',  // Optional. Shows this text instead of the real time.
+        pauseTime: 8000,
+        messages: [
+            "Find more information below.",
+        ],
+    },
 };
 
 // Used when the URL has no mode, or an unknown mode.

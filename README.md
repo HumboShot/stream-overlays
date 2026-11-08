@@ -10,7 +10,7 @@ This repo came from the original `twitch-webpages` monorepo. It keeps the full f
 
 | Overlay | Path | What it shows |
 | --- | --- | --- |
-| [Stream screens](#stream-screens) | `screen/` | The Starting, AFK, and Ending screens, in one page. |
+| [Stream screens](#stream-screens) | `screen/` | The Starting, AFK, Ending, and Offline screens, in one page. |
 | [Chat overlay](#chat-overlay) | `chat-overlay/` | Twitch chat in three layouts, plus redeem, watch streak, and poll alerts. |
 | [PlexAmp now playing](#plexamp-now-playing) | `plexamp-overlay/` | The track that the PlexAmp desktop app plays. |
 | [Tuna now playing](#tuna-now-playing) | `now-playing/tuna-overlay-music.html` | The track that the Tuna OBS plugin reports. |
@@ -41,11 +41,12 @@ Some folders hold parts that the overlays use:
 
 ## Stream screens
 
-`screen/screen.html` shows the Starting, AFK, or Ending screen. The `mode` URL query selects the screen:
+`screen/screen.html` shows the Starting, AFK, Ending, or Offline screen. The `mode` URL query selects the screen:
 
 - `screen.html?mode=starting`: the starting soon screen. This is the default.
 - `screen.html?mode=afk`: the AFK/BRB screen.
 - `screen.html?mode=ending`: the stream ending screen.
+- `screen.html?mode=offline`: the offline screen. This screen has no sun and no moon, and the clock shows `XX:XX:XX`.
 
 Edit the status text, title, messages, and timings for each mode in `screen/screen.config.js`. The status LED color for each mode is in `screen/screen.css`.
 

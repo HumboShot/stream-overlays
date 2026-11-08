@@ -105,6 +105,7 @@
     <script>
         const timeEl = document.getElementById('time');
         const gmtEl = document.getElementById('gmt');
+        const clockText = new URLSearchParams(location.search).get('clockText');
 
         function formatGmtOffset(date) {
             const totalMinutes = -date.getTimezoneOffset();
@@ -122,7 +123,7 @@
             const ss = String(now.getSeconds()).padStart(2, '0');
             //const ms = String(now.getMilliseconds()).padStart(3, '0');
 
-            timeEl.textContent = `${hh}:${mm}:${ss}`;
+            timeEl.textContent = clockText || `${hh}:${mm}:${ss}`;
             gmtEl.textContent = formatGmtOffset(now);
 
             // Wake up just after the next full second, so the seconds tick on time.

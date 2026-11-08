@@ -30,6 +30,18 @@ body[data-mode="ending"] {
     --led-blink: 0.8s;
 }
 
+/* This is a dim, slow light, because the system is off. */
+body[data-mode="offline"] {
+    --led-color: #7a8794;
+    --led-glow: #39424b;
+    --led-blink: 3s;
+}
+
+/* The offline screen keeps the sky and the stars, but has no sun and no moon. */
+body[data-mode="offline"] .sky-orbit {
+    display: none;
+}
+
 /* --- SUN AND NIGHT CYCLE ---
    The sky sits behind all other content. The sun and the moon sit on opposite
    ends of one rotating orbit, so one turn is one full day. screen.js turns
